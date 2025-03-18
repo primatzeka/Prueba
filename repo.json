@@ -1,8 +1,0 @@
-{
-    "name": "DiziPal & NeonSpor | sarapcanagii",
-    "description": "DiziPal içerikleri ve NeonSpor",
-    "manifestVersion": 1,
-    "pluginLists": [
-      "https://raw.githubusercontent.com/bayirdomuzu-dev/Prueba/builds/plugins.json"
-    ]
-}
