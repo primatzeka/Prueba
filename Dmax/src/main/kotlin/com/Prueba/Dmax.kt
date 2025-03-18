@@ -44,7 +44,7 @@ class Dmax : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-        "${mainUrl}/kesfet" to "HER GÜN YENİ BİR MACERA 🔥",
+        "${mainUrl}" to "HER GÜN YENİ BİR MACERA 🔥",
         "${mainUrl}" to "SADECE DMAX.COM.TR'DE",
         "${mainUrl}" to "Yeni Filmler",
         "${mainUrl}" to "Netflix",
@@ -66,8 +66,8 @@ class Dmax : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(request.data).document
-        val home = if (request.data.contains("/kesfet")) {
-            document.select("section.grid.dyn-content").mapNotNull { it.sonBolumler() }
+        val home = if (request.data.contains("")) {
+            document.select("div.poster").mapNotNull { it.sonBolumler() }
         } else {
             document.select("article.type2 ul li").mapNotNull { it.diziler() }
         }
@@ -76,24 +76,12 @@ class Dmax : MainAPI() {
     }
 
     private suspend fun Element.sonBolumler(): SearchResponse? {
-        val aElement = this.selectFirst("a") ?: return null
-        val name = aElement.text() ?: return null
-        val href = fixUrlNull(aElement.attr("href")) ?: return null
-        val posterUrl = fixUrlNull(this.selectFirst("div.thumb-wrapper img")?.attr("src"))
-    
-        // onclick değerini al
-        val onclickAttr = aElement.attr("onclick")
-        
-        // Regex ile son parametreyi al
-        val regex = """.*['"](.*?)['"]\);""".toRegex()
-        val matchResult = regex.find(onclickAttr)
-        val extractedName = matchResult?.groups?.get(1)?.value ?: return null
-    
-        // İlk harfleri büyük yap
-        val formattedName = extractedName.split("-")
-            .joinToString(" ") { it.replaceFirstChar { ch -> ch.uppercaseChar() } }
-    
-        return newTvSeriesSearchResponse(formattedName, href.substringBefore("/sezon"), TvType.TvSeries) {
+        val name = this.selectFirst("a div.thumb-wrapper img")?.attr("alt")) ?: return null
+
+        val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
+        val posterUrl = fixUrlNull(this.selectFirst("a div.thumb-wrapper img")?.attr("src"))
+
+        return newTvSeriesSearchResponse(name, href.substringBefore("/sezon"), TvType.TvSeries) {
             this.posterUrl = posterUrl
         }
     }
