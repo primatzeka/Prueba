@@ -142,7 +142,7 @@ class Dmax : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
-
+    
         val poster = fixUrlNull(document.selectFirst("a div.thumb-wrapper img")?.attr("data-src"))
         val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div")
             .text()
@@ -166,16 +166,16 @@ class Dmax : MainAPI() {
             document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div")
                 .text() ?: ""
         )?.value?.toIntOrNull()
-
-        return if (url.contains("istenen_deger")) {
+    
+        if (url.contains("istenen_deger")) {
             val title = document.selectFirst("div.cover h5")?.text() ?: return null
-        
+            
             val episodes = document.select("div.episode-item").mapNotNull {
                 val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
                 val epHref = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
                 val epEpisode = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(2)?.replace(".", "")?.toIntOrNull()
                 val epSeason = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(0)?.replace(".", "")?.toIntOrNull()
-        
+            
                 Episode(
                     data = epHref,
                     name = epName,
@@ -183,8 +183,8 @@ class Dmax : MainAPI() {
                     episode = epEpisode
                 )
             }
-        
-            newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+            
+            return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
                 this.posterUrl = poster
                 this.year = year
                 this.plot = description
@@ -192,11 +192,10 @@ class Dmax : MainAPI() {
                 this.rating = rating
                 this.duration = duration
             }
-        }
         } else {
             val title = document.selectXpath("//div[@class='g-title'][2]/div").text().trim()
-
-            newMovieLoadResponse(title, url, TvType.Movie, url) {
+    
+            return newMovieLoadResponse(title, url, TvType.Movie, url) {
                 this.posterUrl = poster
                 this.year = year
                 this.plot = description
