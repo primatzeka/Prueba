@@ -1,4 +1,4 @@
-package com.sarapcanagii
+package com.primatzeka
 
 import android.util.Log
 import org.jsoup.nodes.Element
