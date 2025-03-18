@@ -76,7 +76,8 @@ class Dmax : MainAPI() {
     }
 
     private suspend fun Element.sonBolumler(): SearchResponse? {
-        val name = this.selectFirst("a div.thumb-wrapper img")?.attr("alt")) ?: return null
+        val imgElement = this.selectFirst("a div.thumb-wrapper img") ?: return null
+        val name = imgElement.attr("alt") ?: return null
 
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("a div.thumb-wrapper img")?.attr("src"))
