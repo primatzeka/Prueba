@@ -1,0 +1,21 @@
+[
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=colorhunt.co&sz=%size%",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/primatzeka/Prueba",
+        "fileSize": 17231,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "primatzeka"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 4,
+        "internalName": "NeonSpor",
+        "description": "(Tabii Spor Hari\u00e7 Di\u011ferleri i\u00e7in VPN Gerekebilir.) NeonSpor eklentisini de BeIN Spor, Tabii Spor ve S Spor kanallar\u0131 mevcuttur.",
+        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/NeonSpor.cs3",
+        "name": "NeonSpor"
+    }
+]
