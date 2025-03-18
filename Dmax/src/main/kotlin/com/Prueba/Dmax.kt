@@ -140,14 +140,31 @@ class Dmax : MainAPI() {
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
 
-        val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
-        val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div").text().trim().toIntOrNull()
+        val poster = fixUrlNull(document.selectFirst("a div.thumb-wrapper img")?.attr("src"))
+        val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div")
+            .text()
+            .trim()
+            .toIntOrNull()
+        
         val description = document.selectFirst("div.summary p")?.text()?.trim()
-        val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div").text().trim().split(" ").mapNotNull { it.trim() }
-        val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div").text().trim().toRatingInt()
-        val duration = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div").text() ?: "")?.value?.toIntOrNull()
+        
+        val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div")
+            .text()
+            .trim()
+            .split(" ")
+            .mapNotNull { it.trim() }
+        
+        val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div")
+            .text()
+            .trim()
+            .toRatingInt()
+        
+        val duration = Regex("(\\d+)").find(
+            document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div")
+                .text() ?: ""
+        )?.value?.toIntOrNull()
 
-        return if (url.contains("/dizi/")) {
+        return if (url.contains("")) {
             val title = document.selectFirst("div.cover h5")?.text() ?: return null
 
             val episodes = document.select("div.episode-item").mapNotNull {
