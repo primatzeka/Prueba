@@ -45,7 +45,7 @@ class Dmax : MainAPI() {
 
     override val mainPage = mainPageOf(
         "${mainUrl}" to "HER GÜN YENİ BİR MACERA 🔥",
-        "${mainUrl}" to "SADECE DMAX.COM.TR'DE",
+        "${mainUrl}/kesfet" to "SADECE DMAX.COM.TR'DE",
         "${mainUrl}" to "Yeni Filmler",
         "${mainUrl}" to "Netflix",
         "${mainUrl}" to "Exxen",
@@ -69,7 +69,7 @@ class Dmax : MainAPI() {
         val home = if (request.data.contains("")) {
             document.select("div.poster").mapNotNull { it.sonBolumler() }
         } else {
-            document.select("article.type2 ul li").mapNotNull { it.diziler() }
+            document.select("div.poster").mapNotNull { it.diziler() }
         }
 
         return newHomePageResponse(request.name, home, hasNext = false)
@@ -88,11 +88,24 @@ class Dmax : MainAPI() {
     }
 
     private fun Element.diziler(): SearchResponse? {
-        val title = this.selectFirst("span.title")?.text() ?: return null
-        val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
-
-        return newTvSeriesSearchResponse(title, href, TvType.TvSeries) { this.posterUrl = posterUrl }
+        // JavaScript onClick olayından başlık bilgisi alınıyor
+        val onclickValue = this.selectFirst("a")?.attr("onclick") ?: return null
+        val onclickParts = Regex("'([^']*)'").findAll(onclickValue).map { it.groupValues[1] }.toList()
+    
+        // Eğer beklenen parçayı alabiliyorsak, başlığı çıkarıyoruz
+        val baslikKaynak = if (onclickParts.size > 2) onclickParts[2] else return null
+        if ("Discover_poster" in baslikKaynak) return null
+    
+        // Kelimelerin ilk harflerini büyük yapma
+        val baslik = baslikKaynak.split("-").joinToString(" ") { it.capitalize() }
+    
+        // Diğer gerekli bilgileri al
+        val altBilgi = this.selectFirst("a div.thumb-wrapper img")?.attr("alt")
+        val gorselUrl = fixUrlNull(this.selectFirst("a div.thumb-wrapper img")?.attr("src")) ?: return null
+        val sayfaBaglantisi = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: "Yok"
+    
+        // SearchResponse döndür
+        return newTvSeriesSearchResponse(baslik, sayfaBaglantisi, TvType.TvSeries) { this.posterUrl = gorselUrl }
     }
 
     private fun SearchItem.toPostSearchResult(): SearchResponse {
