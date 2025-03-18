@@ -1,7 +1,7 @@
 version = 4
 
 cloudstream {
-    authors     = listOf("bayirdomuzu-dev")
+    authors     = listOf("primatzeka")
     language    = "tr"
     description = "(Tabii Spor Hariç Diğerleri için VPN Gerekebilir.) NeonSpor eklentisini de BeIN Spor, Tabii Spor ve S Spor kanalları mevcuttur."
 
