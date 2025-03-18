@@ -11,7 +11,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import org.jsoup.Jsoup
 
-class DiziPal : MainAPI() {
+class Dmax : MainAPI() {
     override var mainUrl = "https://www.dmax.com.tr/"
     override var name = "Dmax"
     override val hasMainPage = true
@@ -19,7 +19,7 @@ class DiziPal : MainAPI() {
     override val hasQuickSearch = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
-    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
+    override val supportedTypes = setOf(TvType.TvSeries)
 
     // CloudFlare bypass
     override var sequentialMainPage = true
