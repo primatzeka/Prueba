@@ -43,29 +43,29 @@ class DiziPal : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-        "${mainUrl}/" to "HER GÜN YENİ BİR MACERA 🔥",
-        "${mainUrl}/" to "SADECE DMAX.COM.TR'DE",
-        "${mainUrl}/" to "Yeni Filmler",
-        "${mainUrl}/" to "Netflix",
-        "${mainUrl}/" to "Exxen",
-        "${mainUrl}/" to "BluTV",
-        "${mainUrl}/" to "Disney+",
-        "${mainUrl}/" to "Amazon Prime",
-        "${mainUrl}/" to "TOD (beIN)",
-        "${mainUrl}/" to "Gain",
-        "${mainUrl}/" to "Mubi",
-        "${mainUrl}/" to "Anime",
-        "${mainUrl}/" to "Bilimkurgu Dizileri",
-        "${mainUrl}/" to "Bilimkurgu Filmleri",
-        "${mainUrl}/" to "Komedi Dizileri",
-        "${mainUrl}/" to "Komedi Filmleri",
-        "${mainUrl}/" to "Belgesel Dizileri",
-        "${mainUrl}/" to "Belgesel Filmleri",
+        "${mainUrl}" to "HER GÜN YENİ BİR MACERA 🔥",
+        "${mainUrl}" to "SADECE DMAX.COM.TR'DE",
+        "${mainUrl}" to "Yeni Filmler",
+        "${mainUrl}" to "Netflix",
+        "${mainUrl}" to "Exxen",
+        "${mainUrl}" to "BluTV",
+        "${mainUrl}" to "Disney+",
+        "${mainUrl}" to "Amazon Prime",
+        "${mainUrl}" to "TOD (beIN)",
+        "${mainUrl}" to "Gain",
+        "${mainUrl}" to "Mubi",
+        "${mainUrl}" to "Anime",
+        "${mainUrl}" to "Bilimkurgu Dizileri",
+        "${mainUrl}" to "Bilimkurgu Filmleri",
+        "${mainUrl}" to "Komedi Dizileri",
+        "${mainUrl}" to "Komedi Filmleri",
+        "${mainUrl}" to "Belgesel Dizileri",
+        "${mainUrl}" to "Belgesel Filmleri",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(request.data).document
-        val home = if (request.data.contains("/")) {
+        val home = if (request.data.contains("${mainUrl}")) {
             document.select("div.owl-stage").mapNotNull { it.sonBolumler() }
         } else {
             document.select("article.type2 ul li").mapNotNull { it.diziler() }
@@ -114,7 +114,7 @@ class DiziPal : MainAPI() {
                 "Accept" to "application/json, text/javascript, */*; q=0.01",
                 "X-Requested-With" to "XMLHttpRequest"
             ),
-            referer = "${mainUrl}/",
+            referer = "${mainUrl}",
             data = mapOf("query" to query)
         )
 
