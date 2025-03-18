@@ -76,11 +76,13 @@ class DiziPal : MainAPI() {
 
     private suspend fun Element.sonBolumler(): SearchResponse? {
         val name = this.selectFirst("img.lozad")?.attr("alt") ?: return null
+        val episode = this.selectFirst("div.episode")?.text()?.trim()?.replace(". Sezon ", "x")?.replace(". Bölüm", "") ?: return null
+        val title = "$name $episode"
 
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("img.lozad")?.attr("src"))
     
-        return newTvSeriesSearchResponse(name, href.substringBefore("/sezon"), TvType.TvSeries) {
+        return newTvSeriesSearchResponse(title, href.substringBefore("/sezon"), TvType.TvSeries) {
             this.posterUrl = posterUrl
         }
     }
