@@ -66,7 +66,7 @@ class Dmax : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(request.data).document
-        val home = if (request.data.contains("")) {
+        val home = if (request.data.contains("${mainUrl}")) {
             document.select("div.poster").mapNotNull { it.sonBolumler() }
         } else {
             document.select("div.poster").mapNotNull { it.diziler() }
