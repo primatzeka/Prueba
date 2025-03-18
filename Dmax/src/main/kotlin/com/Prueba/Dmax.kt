@@ -79,8 +79,8 @@ class DiziPal : MainAPI() {
 
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("img.lozad")?.attr("src"))
-
-        return newTvSeriesSearchResponse(title, href.substringBefore("/sezon"), TvType.TvSeries) {
+    
+        return newTvSeriesSearchResponse(name, href.substringBefore("/sezon"), TvType.TvSeries) {
             this.posterUrl = posterUrl
         }
     }

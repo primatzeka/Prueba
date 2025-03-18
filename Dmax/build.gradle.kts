@@ -3,7 +3,7 @@ version = 4
 cloudstream {
     authors     = listOf("primatzeka")
     language    = "tr"
-    description = "(Tabii Spor Hariç Diğerleri için VPN Gerekebilir.) NeonSpor eklentisini de BeIN Spor, Tabii Spor ve S Spor kanalları mevcuttur."
+    description = "(DMAX dizi ve programlarını takip etmek için ziyaret edin. DMAX dizi ve programlarını tek parça ve hd kalitesiyle izleyin."
 
     /**
      * Status int as the following:
