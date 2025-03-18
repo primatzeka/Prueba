@@ -71,8 +71,11 @@ class Dmax : MainAPI() {
         } else {
             document.select("div.poster").mapNotNull { it.diziler() }
         }
-
-        return newHomePageResponse(request.name, home, hasNext = false)
+    
+        // url parametresini burada request'ten alıyoruz (örnek olarak)
+        val url = request.url ?: "" // Eğer url yoksa boş bir string ile geçiyoruz
+    
+        return newHomePageResponse(request.name, url, home, hasNext = false)
     }
 
     private suspend fun Element.sonBolumler(url: String): SearchResponse? {
