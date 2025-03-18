@@ -140,7 +140,7 @@ class Dmax : MainAPI() {
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
 
-        val poster = fixUrlNull(document.selectFirst("a div.thumb-wrapper img")?.attr("src"))
+        val poster = fixUrlNull(document.selectFirst("a div.thumb-wrapper img")?.attr("data-src"))
         val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div")
             .text()
             .trim()
