@@ -45,7 +45,7 @@ class Dmax : MainAPI() {
 
     override val mainPage = mainPageOf(
         "${mainUrl}" to "HER GÜN YENİ BİR MACERA 🔥",
-        "${mainUrl}/kesfet" to "SADECE DMAX.COM.TR'DE",
+        "${mainUrl}" to "SADECE DMAX.COM.TR'DE",
         "${mainUrl}" to "Yeni Filmler",
         "${mainUrl}" to "Netflix",
         "${mainUrl}" to "Exxen",
@@ -75,14 +75,17 @@ class Dmax : MainAPI() {
         return newHomePageResponse(request.name, home, hasNext = false)
     }
 
-    private suspend fun Element.sonBolumler(): SearchResponse? {
+    private suspend fun Element.sonBolumler(url: String): SearchResponse? {
         val imgElement = this.selectFirst("a div.thumb-wrapper img") ?: return null
         val name = imgElement.attr("alt") ?: return null
-
+    
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("a div.thumb-wrapper img")?.attr("src"))
-
-        return newTvSeriesSearchResponse(name, href.substringBefore("/sezon"), TvType.TvSeries) {
+    
+        // URL contains kontrolü yaparak name değerini ayarla
+        val nameFromUrl = if (url.contains("istenen_deger")) "istenen_deger" else name
+    
+        return newTvSeriesSearchResponse(nameFromUrl, href.substringBefore("/sezon"), TvType.TvSeries) {
             this.posterUrl = posterUrl
         }
     }
@@ -164,15 +167,15 @@ class Dmax : MainAPI() {
                 .text() ?: ""
         )?.value?.toIntOrNull()
 
-        return if (url.contains("")) {
+        return if (url.contains("istenen_deger")) {
             val title = document.selectFirst("div.cover h5")?.text() ?: return null
-
+        
             val episodes = document.select("div.episode-item").mapNotNull {
                 val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
                 val epHref = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
                 val epEpisode = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(2)?.replace(".", "")?.toIntOrNull()
                 val epSeason = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(0)?.replace(".", "")?.toIntOrNull()
-
+        
                 Episode(
                     data = epHref,
                     name = epName,
@@ -180,7 +183,7 @@ class Dmax : MainAPI() {
                     episode = epEpisode
                 )
             }
-
+        
             newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
                 this.posterUrl = poster
                 this.year = year
@@ -189,6 +192,7 @@ class Dmax : MainAPI() {
                 this.rating = rating
                 this.duration = duration
             }
+        }
         } else {
             val title = document.selectXpath("//div[@class='g-title'][2]/div").text().trim()
 
