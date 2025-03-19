@@ -100,25 +100,25 @@ class HDFilmCehennemi : MainAPI() {
         val itemId     = document.selectFirst("iframe#diziyouPlayer")?.attr("src")?.split("/")?.lastOrNull()?.substringBefore(".html") ?: return false
         Log.d("DZY", "itemId » $itemId")
 
-        val subTitles  = mutableListOf<DiziyouSubtitle>()
-        val streamUrls = mutableListOf<DiziyouStream>()
+        val subTitles  = mutableListOf<HDFilmCehennemiSubtitle>()
+        val streamUrls = mutableListOf<HDFilmCehennemiStream>()
         val storage    = mainUrl.replace("www", "storage")
 
         document.select("span.diziyouOption").forEach {
             val optId   = it.attr("id")
 
             if (optId == "turkceAltyazili") {
-                subTitles.add(DiziyouSubtitle("Turkish", "${storage}/subtitles/${itemId}/tr.vtt"))
-                streamUrls.add(DiziyouStream("Orjinal Dil", "${storage}/episodes/${itemId}/play.m3u8"))
+                subTitles.add(HDFilmCehennemiSubtitle("Turkish", "${storage}/subtitles/${itemId}/tr.vtt"))
+                streamUrls.add(HDFilmCehennemiStream("Orjinal Dil", "${storage}/episodes/${itemId}/play.m3u8"))
             }
 
             if (optId == "ingilizceAltyazili") {
-                subTitles.add(DiziyouSubtitle("English", "${storage}/subtitles/${itemId}/en.vtt"))
-                streamUrls.add(DiziyouStream("Orjinal Dil", "${storage}/episodes/${itemId}/play.m3u8"))
+                subTitles.add(HDFilmCehennemiSubtitle("English", "${storage}/subtitles/${itemId}/en.vtt"))
+                streamUrls.add(HDFilmCehennemiStream("Orjinal Dil", "${storage}/episodes/${itemId}/play.m3u8"))
             }
 
             if (optId == "turkceDublaj") {
-                streamUrls.add(DiziyouStream("Türkçe Dublaj", "${storage}/episodes/${itemId}_tr/play.m3u8"))
+                streamUrls.add(HDFilmCehennemiStream("Türkçe Dublaj", "${storage}/episodes/${itemId}_tr/play.m3u8"))
             }
         }
 
@@ -147,6 +147,6 @@ class HDFilmCehennemi : MainAPI() {
         return true
     }
 
-    data class DiziyouSubtitle(val name: String, val url: String)
-    data class DiziyouStream(val name: String, val url: String)
+    data class HDFilmCehennemiSubtitle(val name: String, val url: String)
+    data class HDFilmCehennemiStream(val name: String, val url: String)
 }
