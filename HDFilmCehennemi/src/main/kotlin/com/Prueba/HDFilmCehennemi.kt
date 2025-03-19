@@ -60,16 +60,18 @@ class HDFilmCehennemi : MainAPI() {
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
 
-        val title           = document.selectFirst("h1")?.text()?.trim() ?: return null
+        val title = document.selectFirst("h1")?.text()?.trim()
+            ?.replace("İzle - Hdfilmcehennemi", "", ignoreCase = true)
+            ?.trim() ?: return null
         val poster          = fixUrlNull(document.selectFirst("div.category_image img")?.attr("src"))
-        val description     = document.selectFirst("div.diziyou_desc")?.ownText()?.trim()
+        val description     = document.selectFirst("div.category_desc")?.ownText()?.trim()
         val year            = document.selectFirst("span.dizimeta:contains(Yapım Yılı)")?.nextSibling()?.toString()?.trim()?.toIntOrNull()
         val tags            = document.select("div.genres a").map { it.text() }
         val rating          = document.selectFirst("span.dizimeta:contains(IMDB)")?.nextSibling()?.toString()?.trim()?.toRatingInt()
         val actors          = document.selectFirst("span.dizimeta:contains(Oyuncular)")?.nextSibling()?.toString()?.trim()?.split(", ")?.map { Actor(it) }
         val trailer         = document.selectFirst("iframe.trailer-video")?.attr("src")
 
-        val episodes = document.select("div.bolumust").mapNotNull {
+        val episodes = document.select("div.bolumust.show").mapNotNull {
             val epName    = it.selectFirst("div.baslik")?.ownText()?.trim() ?: return@mapNotNull null
             val epHref    = it.closest("a")?.attr("href")?.let { href -> fixUrlNull(href) } ?: return@mapNotNull null
             val epEpisode = Regex("""(\d+)\. Bölüm""").find(epName)?.groupValues?.get(1)?.toIntOrNull()
