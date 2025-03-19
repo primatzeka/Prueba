@@ -78,7 +78,7 @@ class HDFilmCehennemi : MainAPI() {
             val epSeason = Regex("""(\d+)\. Sezon""").find(epName)?.groupValues?.get(1)?.toIntOrNull() ?: 1
         
             newEpisode(epHref) {
-                this.name = it.selectFirst("div.bolum-ismi")?.text()?.trim()?.replace(Regex("""[()]"""), "")?.trim() ?: epName
+                this.name = it.selectFirst("div.bolum-ismi.bolumismi")?.text()?.trim()?.replace(Regex("""[()]"""), "")?.trim() ?: epName
                 this.season = epSeason
                 this.episode = epEpisode
             }
