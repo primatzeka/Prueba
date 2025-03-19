@@ -99,14 +99,14 @@ class HDFilmCehennemi : MainAPI() {
         Log.d("DZY", "data » $data")
         val document = app.get(data).document
 
-        val itemId     = document.selectFirst("iframe#diziyouPlayer")?.attr("src")?.split("/")?.lastOrNull()?.substringBefore(".html") ?: return false
+        val itemId     = document.selectFirst("iframe")?.attr("src")?.split("/")?.lastOrNull()?.substringBefore(".html") ?: return false
         Log.d("DZY", "itemId » $itemId")
 
         val subTitles  = mutableListOf<HDFilmCehennemiSubtitle>()
         val streamUrls = mutableListOf<HDFilmCehennemiStream>()
         val storage    = mainUrl.replace("www", "storage")
 
-        document.select("span.diziyouOption").forEach {
+        document.select("span.dil.current_dil").forEach {
             val optId   = it.attr("id")
 
             if (optId == "turkceAltyazili") {
