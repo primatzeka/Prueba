@@ -99,7 +99,7 @@ class HDFilmCehennemi : MainAPI() {
         Log.d("DZY", "data » $data")
         val document = app.get(data).document
 
-        val itemId     = document.selectFirst("iframe")?.attr("src")?.split("/")?.lastOrNull()?.substringBefore(".html") ?: return false
+        val itemId     = document.selectFirst("div.video div.video-container p iframe")?.attr("src")?.split("/")?.lastOrNull()?: return false
         Log.d("DZY", "itemId » $itemId")
 
         val subTitles  = mutableListOf<HDFilmCehennemiSubtitle>()
