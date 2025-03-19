@@ -72,13 +72,13 @@ class HDFilmCehennemi : MainAPI() {
         val trailer         = document.selectFirst("iframe.trailer-video")?.attr("src")
 
         val episodes = document.select("div.bolumust.show").mapNotNull {
-            val epName    = it.selectFirst("div.baslik")?.ownText()?.trim() ?: return@mapNotNull null
-            val epHref    = it.closest("a")?.attr("href")?.let { href -> fixUrlNull(href) } ?: return@mapNotNull null
+            val epName = it.selectFirst("div.baslik")?.text()?.trim() ?: return@mapNotNull null
+            val epHref = it.selectFirst("a")?.attr("href")?.let { href -> fixUrlNull(href) } ?: return@mapNotNull null
             val epEpisode = Regex("""(\d+)\. Bölüm""").find(epName)?.groupValues?.get(1)?.toIntOrNull()
-            val epSeason  = Regex("""(\d+)\. Sezon""").find(epName)?.groupValues?.get(1)?.toIntOrNull() ?: 1
-
+            val epSeason = Regex("""(\d+)\. Sezon""").find(epName)?.groupValues?.get(1)?.toIntOrNull() ?: 1
+        
             newEpisode(epHref) {
-                this.name = it.selectFirst("div.bolumismi")?.text()?.trim()?.replace(Regex("""[()]"""), "")?.trim() ?: epName
+                this.name = it.selectFirst("div.bolum-ismi")?.text()?.trim()?.replace(Regex("""[()]"""), "")?.trim() ?: epName
                 this.season = epSeason
                 this.episode = epEpisode
             }
