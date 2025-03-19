@@ -71,7 +71,7 @@ class HDFilmCehennemi : MainAPI() {
         val actors          = document.selectFirst("span.dizimeta:contains(Oyuncular)")?.nextSibling()?.toString()?.trim()?.split(", ")?.map { Actor(it) }
         val trailer         = document.selectFirst("iframe.trailer-video")?.attr("src")
 
-        val episodes = document.select("div.bolumust.show").mapNotNull {
+        val episodes = document.select("div.container div.bolumust").mapNotNull {
             val epName = it.selectFirst("div.baslik")?.text()?.trim() ?: return@mapNotNull null
             val epHref = it.selectFirst("a")?.attr("href")?.let { href -> fixUrlNull(href) } ?: return@mapNotNull null
             val epEpisode = Regex("""(\d+)\. Bölüm""").find(epName)?.groupValues?.get(1)?.toIntOrNull()
