@@ -1,9 +1,9 @@
 [
     {
-        "iconUrl": "https://www.google.com/s2/favicons?domain=www.dmax.com.tr&sz=%size%",
+        "iconUrl": "https://www.google.com/s2/favicons?domain=hdfilmcehennemi12.org&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 18860,
+        "fileSize": 13736,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -13,10 +13,10 @@
             "TvSeries"
         ],
         "version": 4,
-        "internalName": "Dmax",
-        "description": "(DMAX dizi ve programlar\u0131n\u0131 takip etmek i\u00e7in ziyaret edin. DMAX dizi ve programlar\u0131n\u0131 tek par\u00e7a ve hd kalitesiyle izleyin.",
-        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/Dmax.cs3",
-        "name": "Dmax"
+        "internalName": "HDFilmCehennemi",
+        "description": "(HDFilmCehennemi, en yeni filmleri ve yabanc\u0131 dizileri HD kalitesinde izleyebilece\u011finiz \u00fccretsiz bir platformdur.",
+        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/HDFilmCehennemi.cs3",
+        "name": "HDFilmCehennemi"
     },
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=colorhunt.co&sz=%size%",
