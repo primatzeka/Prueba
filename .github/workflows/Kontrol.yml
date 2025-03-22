@@ -55,15 +55,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "203746723+github-actions[bot]@users.noreply.github.com"
 
+          git checkout $BRANCH_NAME
           git add -A
-
-          git commit --author="primatzeka <primatzeka@users.noreply.github.com>" \
-            -m "♻️ Domain Değişikliği" \
-            -m "🔄 Otomatik domain güncellemeleri yapıldı."
-          BRANCH="domain-degisikligi"
-
-          git checkout -B $BRANCH
-          git push origin $BRANCH --force
+          git commit -m "♻️ Domain Değişikliği" \
+                      -m "🔄 Otomatik domain güncellemeleri yapıldı." \
+                      -m "Co-authored-by: github-actions[bot] <203746723+github-actions[bot]@users.noreply.github.com>" \
+                      -m "Co-authored-by: primatzeka <primatzeka@users.noreply.github.com>"
+          git push origin $BRANCH_NAME --force
 
           curl -X POST -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
