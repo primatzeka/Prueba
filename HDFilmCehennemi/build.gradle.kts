@@ -3,7 +3,7 @@ version = 5
 cloudstream {
     authors     = listOf("primatzeka")
     language    = "tr"
-    description = "(HDFilmCehennemi, en yeni filmleri ve yabancı dizileri HD kalitesinde izleyebileceğiniz ücretsiz bir platformdur."
+    description = "(HDFilmCehennemi, en yeni filmleri ve yabancı dizileri HD kalitesinde izleyebileceğiniz ücretsiz bir platformdur.."
 
     /**
      * Status int as the following:
