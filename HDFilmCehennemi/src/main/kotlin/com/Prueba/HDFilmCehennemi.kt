@@ -9,7 +9,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 
 class HDFilmCehennemi : MainAPI() {
     override var mainUrl              = "https://hdfilmcehennemi13.org/"
-    override var name                 = "HDFilmCehennemi"
+    override var name                 = "HDFilmCehennemi 2"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false
@@ -23,10 +23,8 @@ class HDFilmCehennemi : MainAPI() {
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Bilim+Kurgu"          to "Bilim Kurgu",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Dram"                 to "Dram",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Fantazi"              to "Fantazi",
-        "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Gerilim"              to "Gerilim",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Gizem"                to "Gizem",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Komedi"               to "Komedi",
-        "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Korku"                to "Korku",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Macera"               to "Macera",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Sava%C5%9F"           to "Savaş",
         "${mainUrl}/dizi-arsivi/page/SAYFA/?tur=Su%C3%A7"             to "Suç",
