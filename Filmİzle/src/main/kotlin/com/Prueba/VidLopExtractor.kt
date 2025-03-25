@@ -16,9 +16,9 @@ import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.fixUrl
 
 
-open class VidRameExtractor : ExtractorApi() {
-    override val name = "VidRame"
-    override val mainUrl = "https://vidrame.pro"
+open class VidLopExtractor : ExtractorApi() {
+    override val name = "VidLop"
+    override val mainUrl = "https://vidlop.com"
     override val requiresReferer = true
 
     private fun rs(s: String): String {
