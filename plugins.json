@@ -3,7 +3,7 @@
         "iconUrl": "https://www.google.com/s2/favicons?domain=www.filmizle.cx&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 21109,
+        "fileSize": 26988,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -12,7 +12,7 @@
         "tvTypes": [
             "Movie"
         ],
-        "version": 1,
+        "version": 2,
         "internalName": "Film\u0130zle",
         "description": "(Film izle ile Full HD Film Keyfini S\u0131n\u0131rs\u0131z Ya\u015fa. Yerli ve yabanc\u0131 filmleri T\u00fcrk\u00e7e dublaj veya T\u00fcrk\u00e7e altyaz\u0131l\u0131 se\u00e7ene\u011fiyle reklams\u0131z film sitesi.",
         "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/Film\u0130zle.cs3",
