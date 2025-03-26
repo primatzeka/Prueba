@@ -47,6 +47,7 @@ class Sinefil : MainAPI() {
     override val mainPage = mainPageOf(
         //"${mainUrl}/tum-bolumler" to "Altyazılı Bölümler",
         "${mainUrl}/arsiv" to "Yeni Eklenen Diziler",
+        "${mainUrl}/film-izle" to "Yeni Eklenen Filmler",
         "${mainUrl}/dizi-turu/aile" to "Aile",
         "${mainUrl}/dizi-turu/aksiyon" to "Aksiyon",
         "${mainUrl}/dizi-turu/bilim-kurgu" to "Bilim Kurgu",
