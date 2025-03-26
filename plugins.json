@@ -55,24 +55,5 @@
         "description": "(Tabii Spor Hari\u00e7 Di\u011ferleri i\u00e7in VPN Gerekebilir.) NeonSpor eklentisini de BeIN Spor, Tabii Spor ve S Spor kanallar\u0131 mevcuttur.",
         "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/NeonSpor.cs3",
         "name": "NeonSpor"
-    },
-    {
-        "iconUrl": "https://www.google.com/s2/favicons?domain=selcukflix.com&sz=%size%",
-        "apiVersion": 1,
-        "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 23486,
-        "status": 1,
-        "language": "tr",
-        "authors": [
-            "primatzeka"
-        ],
-        "tvTypes": [
-            "TvSeries"
-        ],
-        "version": 2,
-        "internalName": "Sinefil",
-        "description": "Selcukflix'te her t\u00fcrden en yeni ve en pop\u00fcler dizi ve filmleri izlemenin keyfini \u00e7\u0131kar\u0131n. Aksiyondan romanti\u011fe, bilim kurgudan dramaya, geni\u015f k\u00fct\u00fcphanemizde herkes i\u00e7in bir \u015fey var.",
-        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/Sinefil.cs3",
-        "name": "Sinefil"
     }
 ]
