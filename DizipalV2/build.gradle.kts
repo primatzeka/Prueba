@@ -1,9 +1,9 @@
-version = 8
+version = 1
 
 cloudstream {
     authors     = listOf("primatzeka")
     language    = "tr"
-    description = "(HDFilmCehennemi, en yeni filmleri ve yabancı dizileri HD kalitesinde izleyebileceğiniz ücretsiz bir platformdur.."
+    description = "Dizipal, yabancı dizi, yerli dizi - film ve anime izlemeniz için sizinledir."
 
     /**
      * Status int as the following:
@@ -14,5 +14,5 @@ cloudstream {
     **/
     status  = 1 // will be 3 if unspecified
     tvTypes = listOf("TvSeries")
-    iconUrl = "https://www.google.com/s2/favicons?domain=hdfilmcehennemi13.org&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=dizipal910&sz=%size%"
 }
