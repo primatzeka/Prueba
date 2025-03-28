@@ -46,7 +46,7 @@ class DiziPalV2 : MainAPI() {
 
     override val mainPage = mainPageOf(
         //"${mainUrl}/tum-bolumler" to "Altyazılı Bölümler",
-        "${mainUrl}/arsiv" to "Yeni Eklenen Diziler",
+        "${mainUrl}/yabanci-dizi-izle" to "Yeni Eklenen Diziler",
         "${mainUrl}/dizi-turu/aile" to "Aile",
         "${mainUrl}/dizi-turu/aksiyon" to "Aksiyon",
         "${mainUrl}/dizi-turu/bilim-kurgu" to "Bilim Kurgu",
@@ -62,22 +62,22 @@ class DiziPalV2 : MainAPI() {
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         var document = app.get(request.data).document
         val home = if (request.data.contains("dizi-turu")) {
-            document.select("span.watchlistitem-").mapNotNull { it.diziler() }
+            document.select("div.p-1.rounded-md.prm-borderb").mapNotNull { it.diziler() }
         } else if (request.data.contains("/arsiv")) {
             val yil = Calendar.getInstance().get(Calendar.YEAR)
             val sayfa = "?page=sayi&tab=1&sort=date_desc&filterType=2&imdbMin=5&imdbMax=10&yearMin=1900&yearMax=$yil"
             val replace = sayfa.replace("sayi", page.toString())
             document = app.get("${request.data}${replace}").document
-            document.select("a.w-full").mapNotNull { it.yeniEklenenler() }
+            document.select("div.p-1.rounded-md.prm-borderb").mapNotNull { it.yeniEklenenler() }
         } else {
-            document.select("div.col-span-3 a").mapNotNull { it.sonBolumler() }
+            document.select("div.p-1.rounded-md.prm-borderb").mapNotNull { it.sonBolumler() }
         }
 
         return newHomePageResponse(request.name, home)
     }
 
     private fun Element.diziler(): SearchResponse {
-        val title = this.selectFirst("span.font-normal")?.text() ?: "return null"
+        val title = this.selectFirst("h2.text-white")?.text() ?: "return null"
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: "return null"
         val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
 
@@ -87,7 +87,7 @@ class DiziPalV2 : MainAPI() {
     }
 
     private fun Element.yeniEklenenler(): SearchResponse {
-        val title = this.selectFirst("h2")?.text() ?: "return null"
+        val title = this.selectFirst("h2.text-white")?.text() ?: "return null"
         val href = fixUrlNull(this.attr("href")) ?: "return null"
         val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
 
@@ -96,7 +96,7 @@ class DiziPalV2 : MainAPI() {
         }
     }
     private suspend fun Element.sonBolumler(): SearchResponse {
-        val name = this.selectFirst("h2")?.text() ?: ""
+        val name = this.selectFirst("h2.text-white")?.text() ?: ""
         val epName = this.selectFirst("div.opacity-80")!!.text().replace(". Sezon ", "x")
             .replace(". Bölüm", "")
 
