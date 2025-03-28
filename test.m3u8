@@ -6,8 +6,3 @@ https://trkvz.daioncdn.net/aspor/aspor_1080p.m3u8?e=1742878369&st=9Q_LuZSc6L7CnX
 
 #EXTINF:-1 tvg-id="aspor" tvg-name="A Spor" tvg-language="Turkish" tvg-country="TR" tvg-logo="https://seeklogo.com/images/B/bein-sports-1-logo-4E5E4AE6B8-seeklogo.com.png" group-title="aspor",A Spor
 https://trkvz.daioncdn.net/aspor/aspor_1080p.m3u8?e=1742878369&st=9Q_LuZSc6L7CnX_pG19sFA&sid=79my68pzidnl&app=b6bf3b55-0120-4e0f-983b-a6c7969f9ec6&ce=3
-
-#EXTINF:-1 tvg-id="bilmem" tvg-name="ATV" tvg-language="Turkish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Atv_logo_2010.svg/930px-Atv_logo_2010.svg.png" group-title="atv",Atv
-#EXTVLCOPT:http-user-agent=VAVOO/1.0
-#EXTVLCOPT:http-referrer=https://vavoo.to/
-https://vavoo.to/play/1255594337/index.m3u8
