@@ -79,7 +79,7 @@ class DiziPalV2 : MainAPI() {
     private fun Element.diziler(): SearchResponse {
         val title = this.selectFirst("h2.text-white")?.text() ?: "return null"
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: "return null"
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
             this.posterUrl = posterUrl
@@ -89,7 +89,7 @@ class DiziPalV2 : MainAPI() {
     private fun Element.yeniEklenenler(): SearchResponse {
         val title = this.selectFirst("h2.text-white")?.text() ?: "return null"
         val href = fixUrlNull(this.attr("href")) ?: "return null"
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
             this.posterUrl = posterUrl
@@ -106,7 +106,7 @@ class DiziPalV2 : MainAPI() {
 
         val href = fixUrlNull(epDoc?.selectFirst("div.poster a")?.attr("href")) ?: "return null"
 
-        val posterUrl = fixUrlNull(epDoc?.selectFirst("div.poster img")?.attr("src"))
+        val posterUrl = fixUrlNull(epDoc?.selectFirst("div.poster img")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
             this.posterUrl = posterUrl
