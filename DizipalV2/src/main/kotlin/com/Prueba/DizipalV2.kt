@@ -36,8 +36,8 @@ import java.util.Calendar
 
 
 class DiziPalV2 : MainAPI() {
-    override var mainUrl = "https://dizipal910.com"
-    override var name = "DiziPal V2"
+    override var mainUrl = "https://dizipal911.com"
+    override var name = "NewNameValue"
     override val hasMainPage = true
     override var lang = "tr"
     override val hasQuickSearch = true
