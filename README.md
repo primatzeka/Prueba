@@ -1,4 +1,5 @@
-## TEST EKLENTISIDIR! LUTFEN KULLANMAYIN.
+## TEST EKLENTISIDIR!
+LUTFEN KULLANMAYIN.
 
 **Uygulamanın yüklü olduğu cihazda** _[depoyu otomatik yüklemek için tıklayın](https://keyiflerolsun.me/http-protocol-redirector?r=cloudstreamrepo://raw.githubusercontent.com/primatzeka/Prueba/master/repo.json)_
 
