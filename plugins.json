@@ -12,7 +12,7 @@
         "tvTypes": [
             "TvSeries"
         ],
-        "version": 7,
+        "version": 8,
         "internalName": "DizipalV2",
         "description": "Dizipal, yabanc\u0131 dizi, yerli dizi - film ve anime izlemeniz i\u00e7in sizinledir.",
         "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/DizipalV2.cs3",
