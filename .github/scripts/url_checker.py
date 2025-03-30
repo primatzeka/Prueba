@@ -5,6 +5,9 @@ import subprocess
 from pathlib import Path
 import random
 import time
+from cloudscraper import CloudScraper
+
+oturum = CloudScraper()
 
 # Yaygın kullanılan tarayıcı User-Agent örnekleri
 USER_AGENTS = [
