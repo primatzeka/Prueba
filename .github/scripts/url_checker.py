@@ -18,11 +18,19 @@ def find_file(start_dir, target_file):
     return None
 
 def check_url_accessibility(url):
-    """URL'nin erişilebilir olup olmadığını kontrol eder."""
+    """URL'nin erişilebilir olup olmadığını kontrol eder, yönlendirmeleri takip etmez."""
     print(f"URL kontrol ediliyor: {url}")
     try:
-        response = requests.head(url, timeout=10)
-        status = response.status_code < 400
+        # allow_redirects=False parametresiyle yönlendirmeleri takip etmiyoruz
+        response = requests.head(url, timeout=10, allow_redirects=False)
+        
+        # 200-299 arası kodlar başarılı kabul edilir, 300-399 arası yönlendirme kodlarıdır
+        status = 200 <= response.status_code < 300
+        
+        if 300 <= response.status_code < 400:
+            print(f"Dikkat: URL ({response.status_code}) yönlendirme yapıyor! Bu URL doğrudan erişilebilir değil.")
+            return False
+            
         print(f"URL durumu: {'Erişilebilir' if status else 'Erişilemez'} ({response.status_code})")
         return status
     except requests.RequestException as e:
