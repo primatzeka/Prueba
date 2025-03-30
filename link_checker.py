@@ -16,7 +16,7 @@ def check_url(url):
 
 def main():
     # Sabit dosya yolu - değiştirin
-    file_path = "DizipalV2/src/main/kotlin/com/lagradost/DizipalV2.kt"
+    file_path = "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
     
     print("Starting URL check process...")
     
