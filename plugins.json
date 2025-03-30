@@ -3,7 +3,7 @@
         "iconUrl": "https://www.google.com/s2/favicons?domain=dizipal910&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 23486,
+        "fileSize": 23485,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -12,7 +12,7 @@
         "tvTypes": [
             "TvSeries"
         ],
-        "version": 6,
+        "version": 7,
         "internalName": "DizipalV2",
         "description": "Dizipal, yabanc\u0131 dizi, yerli dizi - film ve anime izlemeniz i\u00e7in sizinledir.",
         "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/DizipalV2.cs3",
