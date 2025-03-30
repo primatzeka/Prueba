@@ -101,14 +101,49 @@ def update_file_url(file_path, old_url, new_url):
         logger.error(f"Dosya güncelleme hatası: {e}")
         return False
 
-def git_commit_push(file_path, new_url):
+def update_version_in_gradle(gradle_file):
+    """build.gradle.kts dosyasındaki versiyon numarasını artırır."""
+    try:
+        if not os.path.exists(gradle_file):
+            logger.error(f"Gradle dosyası bulunamadı: {gradle_file}")
+            return False
+
+        with open(gradle_file, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        # Version değerini bul
+        version_pattern = r'version\s*=\s*(\d+)'
+        match = re.search(version_pattern, content)
+        
+        if match:
+            current_version = int(match.group(1))
+            new_version = current_version + 1
+            logger.info(f"Versiyon güncelleniyor: {current_version} -> {new_version}")
+            
+            # Yeni versiyon ile içeriği güncelle
+            updated_content = re.sub(version_pattern, f'version = {new_version}', content)
+            
+            with open(gradle_file, 'w', encoding='utf-8') as file:
+                file.write(updated_content)
+            
+            logger.info(f"Gradle versiyon güncellendi: {new_version}")
+            return True
+        else:
+            logger.error("Gradle dosyasında versiyon deseni bulunamadı!")
+            return False
+    except Exception as e:
+        logger.error(f"Gradle dosyası güncelleme hatası: {e}")
+        return False
+
+def git_commit_push(file_paths, new_url, new_version):
     """Değişiklikleri commit'ler ve push'lar."""
     try:
-        # Dosyayı git'e ekle
-        subprocess.run(["git", "add", file_path], check=True)
+        # Dosyaları git'e ekle
+        for file_path in file_paths:
+            subprocess.run(["git", "add", file_path], check=True)
         
         # Commit oluştur
-        commit_message = f"URL güncellendi: {new_url}"
+        commit_message = f"URL güncellendi: {new_url}, versiyon: {new_version}"
         subprocess.run(["git", "commit", "-m", commit_message], check=True)
         
         # Push yap
@@ -125,6 +160,7 @@ def main():
     parser.add_argument('--dir', type=str, help='Arama yapılacak dizin yolu', default='./DizipalV2')
     parser.add_argument('--file', type=str, help='Aranacak dosya adı', default='DizipalV2.kt')
     parser.add_argument('--max-attempts', type=int, help='Maksimum deneme sayısı', default=100)
+    parser.add_argument('--gradle-file', type=str, help='Gradle dosyası yolu', default='./build.gradle.kts')
     
     args = parser.parse_args()
     
@@ -144,8 +180,19 @@ def main():
     # Eğer URL yönlendirme yapıyorsa, yönlendirilen URL'yi kullan
     if is_accessible and redirect_url != current_url:
         logger.info(f"URL yönlendirme tespit edildi ve kullanılacak: {redirect_url}")
-        update_file_url(file_path, current_url, redirect_url)
-        git_commit_push(file_path, redirect_url)
+        if update_file_url(file_path, current_url, redirect_url):
+            # Gradle dosyasındaki versiyonu güncelle
+            if update_version_in_gradle(args.gradle_file):
+                # Yeni versiyon değerini al
+                new_version = None
+                with open(args.gradle_file, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    version_match = re.search(r'version\s*=\s*(\d+)', content)
+                    if version_match:
+                        new_version = version_match.group(1)
+                
+                # Git işlemlerini yap
+                git_commit_push([file_path, args.gradle_file], redirect_url, new_version)
         return
     # Eğer mevcut URL çalışıyorsa ve yönlendirme yoksa
     elif is_accessible:
@@ -181,9 +228,18 @@ def main():
     
     # Dosyayı güncelle
     if update_file_url(file_path, current_url, working_url):
-        # Git işlemlerini yap
-        git_commit_push(file_path, working_url)
+        # Gradle dosyasındaki versiyonu güncelle
+        if update_version_in_gradle(args.gradle_file):
+            # Yeni versiyon değerini al
+            new_version = None
+            with open(args.gradle_file, 'r', encoding='utf-8') as file:
+                content = file.read()
+                version_match = re.search(r'version\s*=\s*(\d+)', content)
+                if version_match:
+                    new_version = version_match.group(1)
+            
+            # Git işlemlerini yap
+            git_commit_push([file_path, args.gradle_file], working_url, new_version)
 
 if __name__ == "__main__":
     main()
-
