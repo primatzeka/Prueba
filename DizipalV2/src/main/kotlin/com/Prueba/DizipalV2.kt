@@ -36,7 +36,7 @@ import java.util.Calendar
 
 
 class DiziPalV2 : MainAPI() {
-    override var mainUrl = "https://dizipal910.com"
+    override var mainUrl = "https://dizipal952.com:443/login_up.php"
     override var name = "DiziPal V2"
     override val hasMainPage = true
     override var lang = "tr"
