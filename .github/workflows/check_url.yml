@@ -2,8 +2,8 @@ name: URL Check and Update
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Her 30 dakikada bir çalışır
-  workflow_dispatch:  # Manuel tetikleme için
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 
 jobs:
   check-and-update:
@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # Tüm commit geçmişini al
+        fetch-depth: 0
         
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -29,13 +29,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install requests pyyaml gitpython
+
+    - name: Debug Directory Structure
+      run: |
+        pwd
+        ls -la
+        find . -type f -name "DizipalV2.kt"
         
     - name: Create config file
       run: |
         cat > config.yaml << EOL
-        repo_path: "."
-        dizipal_path: "src/main/kotlin/com/Prueba/DizipalV2.kt"
-        gradle_path: "build.gradle.kts"
+        repo_path: "${{ github.workspace }}"
+        dizipal_path: "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
+        gradle_path: "DizipalV2/build.gradle.kts"
         user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         EOL
         
@@ -56,10 +62,22 @@ jobs:
                 return yaml.safe_load(file)
 
         def get_url_from_file(file_path):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                url_match = re.search(r'mainUrl\s*=\s*"(https?://[^"]+)"', content)
-                return url_match.group(1) if url_match else None
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    url_match = re.search(r'mainUrl\s*=\s*"(https?://[^"]+)"', content)
+                    if url_match:
+                        return url_match.group(1)
+                    print(f"URL pattern not found in file: {file_path}")
+                    return None
+            except FileNotFoundError:
+                print(f"File not found: {file_path}")
+                print("Current working directory:", os.getcwd())
+                print("Directory contents:", os.listdir())
+                return None
+            except Exception as e:
+                print(f"Error reading file: {e}")
+                return None
 
         def update_file_content(file_path, old_url, new_url):
             with open(file_path, 'r', encoding='utf-8') as file:
@@ -114,6 +132,10 @@ jobs:
             repo_path = config['repo_path']
             dizipal_path = os.path.join(repo_path, config['dizipal_path'])
             gradle_path = os.path.join(repo_path, config['gradle_path'])
+
+            print(f"Looking for file at: {dizipal_path}")
+            print(f"Current directory: {os.getcwd()}")
+            print("Directory contents:", os.listdir())
 
             headers = {
                 'User-Agent': config['user_agent'],
