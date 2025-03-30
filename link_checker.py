@@ -1,83 +1,53 @@
 import os
 import re
 import requests
-from bs4 import BeautifulSoup
-from fp.fp import FreeProxy
-import json
-from git import Repo
 import time
 
-def check_url(url, use_proxy=False):
+def extract_number_from_url(url):
+    # dizipalXXX.com formatından XXX sayısını çıkarır
+    match = re.search(r'dizipal(\d+)\.com', url)
+    if match:
+        return int(match.group(1))
+    return None
+
+def create_new_url(base_number):
+    # Yeni URL oluşturur
+    return f"https://dizipal{base_number}.com"
+
+def check_url(url):
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        if use_proxy:
-            proxy = FreeProxy(timeout=1).get()
-            response = requests.get(url, proxies={"http": proxy, "https": proxy}, headers=headers, timeout=5)
-        else:
-            response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
         return response.status_code == 200
     except:
         return False
 
-def increment_url(url):
-    match = re.search(r'(\d+)$', url)
-    if match:
-        num = int(match.group(1))
-        new_url = url[:match.start(1)] + str(num + 1)
-        return new_url
-    return url + "1"
-
-def update_version(gradle_file):
-    with open(gradle_file, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    version_pattern = r'version\s*=\s*"([0-9]+\.[0-9]+\.[0-9]+)"'
-    match = re.search(version_pattern, content)
-    if match:
-        current_version = match.group(1)
-        version_parts = current_version.split('.')
-        version_parts[-1] = str(int(version_parts[-1]) + 1)
-        new_version = '.'.join(version_parts)
-        new_content = re.sub(version_pattern, f'version = "{new_version}"', content)
-        
-        with open(gradle_file, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-        return True
-    return False
-
 def update_kt_file(file_path, old_url, new_url):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    updated_content = content.replace(f'mainUrl = "{old_url}"', f'mainUrl = "{new_url}"')
-    
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(updated_content)
-
-def commit_and_push(repo_path, files_changed):
     try:
-        repo = Repo(repo_path)
-        repo.index.add(files_changed)
-        repo.index.commit(f"Update mainUrl and version - {time.strftime('%Y-%m-%d %H:%M:%S')}")
-        origin = repo.remote('origin')
-        origin.push()
-        print(f"Changes pushed successfully: {files_changed}")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # mainUrl değerini güncelle
+        updated_content = content.replace(f'mainUrl = "{old_url}"', f'mainUrl = "{new_url}"')
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(updated_content)
+        print(f"Updated {file_path} with new URL: {new_url}")
+        return True
     except Exception as e:
-        print(f"Error during git operations: {str(e)}")
+        print(f"Error updating file {file_path}: {str(e)}")
+        return False
 
 def main():
-    # DizipalV2 klasörü
     dizipal_folder = 'DizipalV2'
     
     if not os.path.exists(dizipal_folder):
         print(f"Error: {dizipal_folder} folder not found")
         return
     
-    modified_files = []
-    
-    # .kt dosyalarını recursive olarak arama
+    # .kt dosyalarını recursive olarak ara
     for root, dirs, files in os.walk(dizipal_folder):
         for file in files:
             if file.endswith('.kt'):
@@ -87,47 +57,35 @@ def main():
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        url_match = re.search(r'override\s+var\s+mainUrl\s*=\s*"([^"]+)"', content)
+                        url_match = re.search(r'override\s+var\s+mainUrl\s*=\s*"(https://dizipal\d+\.com)"', content)
                         
                         if url_match:
                             current_url = url_match.group(1)
                             print(f"Found URL: {current_url}")
-                            working_url = None
                             
-                            # Normal kontrol
+                            # Mevcut URL'den sayıyı çıkar
+                            current_number = extract_number_from_url(current_url)
+                            if current_number is None:
+                                continue
+                            
+                            # Mevcut URL çalışıyor mu kontrol et
                             if not check_url(current_url):
-                                print("URL not working, trying with proxy...")
+                                print(f"Current URL {current_url} is not working, trying next numbers...")
                                 
-                                # Proxy ile kontrol
-                                if not check_url(current_url, use_proxy=True):
-                                    print("URL not working with proxy, trying increment...")
+                                # Sonraki 10 sayıyı dene
+                                for i in range(current_number + 1, current_number + 11):
+                                    test_url = create_new_url(i)
+                                    print(f"Testing URL: {test_url}")
                                     
-                                    # URL'yi artırarak kontrol
-                                    test_url = increment_url(current_url)
                                     if check_url(test_url):
-                                        working_url = test_url
-                                        print(f"Found working URL: {working_url}")
-                            
-                            if working_url:
-                                # Kotlin dosyasını güncelle
-                                update_kt_file(file_path, current_url, working_url)
-                                modified_files.append(file_path)
-                                
-                                # build.gradle.kts dosyasını güncelle
-                                gradle_file = os.path.join(dizipal_folder, 'build.gradle.kts')
-                                if os.path.exists(gradle_file):
-                                    if update_version(gradle_file):
-                                        modified_files.append(gradle_file)
+                                        print(f"Found working URL: {test_url}")
+                                        # Dosyayı güncelle
+                                        if update_kt_file(file_path, current_url, test_url):
+                                            print(f"Successfully updated {file_path}")
+                                        break
                 
                 except Exception as e:
                     print(f"Error processing file {file_path}: {str(e)}")
-    
-    # Değişiklik varsa commit ve push yap
-    if modified_files:
-        commit_and_push('.', modified_files)
-        print("All changes committed and pushed successfully")
-    else:
-        print("No changes needed")
 
 if __name__ == "__main__":
     main()
