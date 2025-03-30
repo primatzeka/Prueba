@@ -2,6 +2,8 @@ import os
 import re
 import requests
 import subprocess
+import time
+import random
 from pathlib import Path
 import argparse
 import logging
@@ -9,6 +11,15 @@ import logging
 # Logging ayarları
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Farklı user agent'lar listesi
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1'
+]
 
 def find_file_in_directory(start_dir, target_file):
     """Belirtilen dizin içinde hedef dosyayı bulur."""
@@ -43,28 +54,83 @@ def extract_url(file_path):
         logger.error(f"Dosya okuma hatası: {e}")
         return None
 
-def check_url_with_redirects(url):
+def check_url_with_redirects(url, max_retries=3, retry_delay=2):
     """URL'nin erişilebilir olup olmadığını kontrol eder ve yönlendirmeleri takip eder."""
-    try:
-        # Yönlendirmeleri takip et ama final URL'yi kaydet
-        response = requests.get(url, timeout=10, allow_redirects=True)
-        
-        final_url = response.url
-        
-        if response.status_code < 400:
-            # Eğer yönlendirme varsa
-            if final_url != url:
-                logger.info(f"URL yönlendirme tespit edildi: {url} -> {final_url}")
-                return True, final_url
+    for retry in range(max_retries):
+        try:
+            # Rastgele bir user agent seç
+            headers = {
+                'User-Agent': random.choice(USER_AGENTS),
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0',
+            }
+            
+            # Yönlendirmeleri takip et ama final URL'yi kaydet
+            response = requests.get(
+                url, 
+                timeout=15, 
+                allow_redirects=True,
+                headers=headers
+            )
+            
+            final_url = response.url
+            
+            # Başarılı durum kodları veya yaygın yönlendirme/erişim kodları
+            # 403 veya 503 bile olsa, site muhtemelen mevcuttur ama bizi engelliyor
+            if response.status_code < 500 or response.status_code in [503]:
+                # Eğer yönlendirme varsa
+                if final_url != url:
+                    logger.info(f"URL yönlendirme tespit edildi: {url} -> {final_url}")
+                    return True, final_url
+                else:
+                    logger.info(f"URL erişilebilir (yönlendirme yok): {url} - Durum Kodu: {response.status_code}")
+                    # 403 veya başka bir erişim engelleme kodu alırsak bile, site var kabul ediyoruz
+                    if response.status_code in [403, 429, 503]:
+                        logger.warning(f"URL erişim engellendi ama site mevcut: {url} - Durum Kodu: {response.status_code}")
+                    return True, url
             else:
-                logger.info(f"URL erişilebilir (yönlendirme yok): {url} - Durum Kodu: {response.status_code}")
-                return True, url
-        else:
-            logger.warning(f"URL erişilebilir değil: {url} - Durum Kodu: {response.status_code}")
-            return False, None
-    except requests.RequestException as e:
-        logger.warning(f"URL kontrolü başarısız: {url} - Hata: {e}")
-        return False, None
+                logger.warning(f"URL erişilebilir değil: {url} - Durum Kodu: {response.status_code}")
+        except requests.RequestException as e:
+            # Hata durumunda tekrar dene
+            logger.warning(f"URL kontrolü başarısız ({retry+1}/{max_retries}): {url} - Hata: {e}")
+            # Son deneme değilse bekle
+            if retry < max_retries - 1:
+                sleep_time = retry_delay + random.uniform(0, 2)
+                logger.info(f"{sleep_time:.2f} saniye bekleniyor...")
+                time.sleep(sleep_time)
+    
+    # Eğer check_domain başarılı olursa, URL'yi çalışır kabul et
+    if check_domain(url):
+        logger.info(f"Alan adı mevcut olduğu için URL çalışır kabul ediliyor: {url}")
+        return True, url
+    
+    return False, None
+
+def check_domain(url):
+    """Domain adının var olup olmadığını kontrol eder. 
+    URL'ye erişim engellenmiş olsa bile domain var mı diye bakar."""
+    try:
+        import socket
+        from urllib.parse import urlparse
+        
+        # URL'den domain adını çıkar
+        domain = urlparse(url).netloc
+        
+        # Alan adı çözümlenebiliyor mu kontrol et
+        socket.gethostbyname(domain)
+        logger.info(f"Alan adı DNS çözümlemesi başarılı: {domain}")
+        return True
+    except Exception as e:
+        logger.warning(f"Alan adı DNS çözümlemesi başarısız: {e}")
+        return False
 
 def increment_url_number(url):
     """URL'deki sayıyı artırır."""
@@ -161,6 +227,7 @@ def main():
     parser.add_argument('--file', type=str, help='Aranacak dosya adı', default='DizipalV2.kt')
     parser.add_argument('--max-attempts', type=int, help='Maksimum deneme sayısı', default=100)
     parser.add_argument('--gradle-file', type=str, help='Gradle dosyası yolu', default='./build.gradle.kts')
+    parser.add_argument('--retry-delay', type=float, help='URL kontrol denemesi arasındaki minimum gecikme (saniye)', default=3.0)
     
     args = parser.parse_args()
     
@@ -173,6 +240,9 @@ def main():
     current_url = extract_url(file_path)
     if not current_url:
         return
+    
+    # Rastgele gecikme ekle
+    time.sleep(random.uniform(1, 3))
     
     # URL'yi kontrol et ve yönlendirmeler için izle
     is_accessible, redirect_url = check_url_with_redirects(current_url)
@@ -210,6 +280,11 @@ def main():
             
         logger.info(f"Deneme {attempt+1}/{args.max_attempts}: {next_url}")
         
+        # Her deneme arasında rastgele gecikme ekle (bot tespitini zorlaştırmak için)
+        delay = args.retry_delay + random.uniform(1, 5)
+        logger.info(f"{delay:.2f} saniye bekleniyor...")
+        time.sleep(delay)
+        
         is_accessible, redirect_url = check_url_with_redirects(next_url)
         
         if is_accessible:
@@ -243,3 +318,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
