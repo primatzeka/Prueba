@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+from git import Repo
 
 def check_url(url):
     try:
@@ -12,6 +13,29 @@ def check_url(url):
         return response.status_code == 200
     except:
         print(f"Failed to connect to {url}")
+        return False
+
+def commit_and_push_changes(file_path, old_url, new_url):
+    try:
+        print("\nCommitting and pushing changes...")
+        # Git repo objesi oluştur
+        repo = Repo('.')
+        
+        # Değişiklikleri staging'e ekle
+        repo.index.add([file_path])
+        
+        # Commit oluştur
+        commit_message = f"Update mainUrl from {old_url} to {new_url}"
+        repo.index.commit(commit_message)
+        
+        # Push yap
+        origin = repo.remote('origin')
+        origin.push()
+        
+        print("Changes committed and pushed successfully")
+        return True
+    except Exception as e:
+        print(f"Error in Git operations: {e}")
         return False
 
 def main():
@@ -56,13 +80,12 @@ def main():
                             f.write(new_content)
                         print("File updated successfully")
                         
-                        # Doğrulama
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            check_content = f.read()
-                            if new_url in check_content:
-                                print("Update verified successfully")
-                            else:
-                                print("Update verification failed")
+                        # Git işlemleri
+                        if commit_and_push_changes(file_path, current_url, new_url):
+                            print("All operations completed successfully")
+                        else:
+                            print("Failed to commit and push changes")
+                            
                     except Exception as e:
                         print(f"Error updating file: {e}")
                     
