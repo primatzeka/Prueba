@@ -3,6 +3,17 @@ import re
 import requests
 import subprocess
 from pathlib import Path
+import random
+import time
+
+# Yaygın kullanılan tarayıcı User-Agent örnekleri
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/123.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+]
 
 def find_file(start_dir, target_file):
     """Belirtilen klasör içinde hedef dosyayı arar ve tam yolunu döndürür."""
@@ -17,24 +28,102 @@ def find_file(start_dir, target_file):
     print(f"'{target_file}' dosyası bulunamadı!")
     return None
 
-def check_url_accessibility(url):
-    """URL'nin erişilebilir olup olmadığını kontrol eder, yönlendirmeleri takip etmez."""
+def check_url_accessibility(url, max_retries=3):
+    """URL'nin erişilebilir olup olmadığını kontrol eder, bot korumasını atlatmaya çalışır."""
     print(f"URL kontrol ediliyor: {url}")
+    
+    for attempt in range(max_retries):
+        try:
+            # Rastgele User-Agent seç
+            headers = {
+                "User-Agent": random.choice(USER_AGENTS),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "tr,en-US;q=0.7,en;q=0.3",
+                "Accept-Encoding": "gzip, deflate, br",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+                "Cache-Control": "max-age=0"
+            }
+            
+            # İsteği gönderirken yönlendirmeleri takip etme ve gerçek bir tarayıcı gibi görün
+            response = requests.get(
+                url, 
+                timeout=15, 
+                allow_redirects=False, 
+                headers=headers
+            )
+            
+            # 200-299 arası kodlar başarılı kabul edilir
+            status = 200 <= response.status_code < 300
+            
+            # Yönlendirme kontrolü
+            if 300 <= response.status_code < 400:
+                print(f"Dikkat: URL ({response.status_code}) yönlendirme yapıyor! Bu URL doğrudan erişilebilir değil.")
+                return False
+                
+            print(f"URL durumu: {'Erişilebilir' if status else 'Erişilemez'} ({response.status_code})")
+            return status
+            
+        except requests.RequestException as e:
+            print(f"URL erişim hatası (Deneme {attempt+1}/{max_retries}): {e}")
+            # Son deneme değilse biraz bekle ve tekrar dene
+            if attempt < max_retries - 1:
+                sleep_time = random.uniform(2, 5)  # 2-5 saniye arası rastgele bekle
+                print(f"{sleep_time:.1f} saniye bekleniyor...")
+                time.sleep(sleep_time)
+    
+    print(f"URL erişilemez: Maksimum deneme sayısına ulaşıldı ({max_retries})")
+    return False
+
+def check_url_with_selenium(url):
+    """Selenium kullanarak URL'nin erişilebilir olup olmadığını kontrol eder.
+    Not: Bu fonksiyon kullanılmak istenirse, selenium kütüphanesi ve ilgili webdriver yüklenmelidir."""
+    print(f"Selenium ile URL kontrol ediliyor: {url}")
+    
     try:
-        # allow_redirects=False parametresiyle yönlendirmeleri takip etmiyoruz
-        response = requests.head(url, timeout=10, allow_redirects=False)
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.chrome.service import Service
         
-        # 200-299 arası kodlar başarılı kabul edilir, 300-399 arası yönlendirme kodlarıdır
-        status = 200 <= response.status_code < 300
+        # Selenium ayarları
+        options = Options()
+        options.add_argument("--headless")  # Görünmez modda çalıştır
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument(f"user-agent={random.choice(USER_AGENTS)}")
         
-        if 300 <= response.status_code < 400:
-            print(f"Dikkat: URL ({response.status_code}) yönlendirme yapıyor! Bu URL doğrudan erişilebilir değil.")
+        # ChromeDriver'ı başlat
+        driver = webdriver.Chrome(options=options)
+        
+        # Sayfayı yükle
+        driver.get(url)
+        
+        # Sayfa yüklendikten sonra URL kontrolü yap
+        current_url = driver.current_url
+        
+        # Yönlendirme kontrolü
+        redirected = current_url != url
+        if redirected:
+            print(f"Dikkat: URL yönlendirme yapıyor! {url} -> {current_url}")
+            driver.quit()
             return False
             
-        print(f"URL durumu: {'Erişilebilir' if status else 'Erişilemez'} ({response.status_code})")
-        return status
-    except requests.RequestException as e:
-        print(f"URL erişim hatası: {e}")
+        # Temel HTML içeriğine bakarak sayfanın doğru yüklenip yüklenmediğini kontrol et
+        page_source = driver.page_source
+        loaded_successfully = len(page_source) > 500 and "404" not in driver.title.lower()
+        
+        driver.quit()
+        
+        print(f"URL durumu: {'Erişilebilir' if loaded_successfully else 'Erişilemez'}")
+        return loaded_successfully
+        
+    except Exception as e:
+        print(f"Selenium ile URL kontrol hatası: {e}")
         return False
 
 def extract_dizipal_number(url):
@@ -180,7 +269,18 @@ def main():
         return 1
     
     # URL'nin erişilebilirliğini kontrol et
-    if check_url_accessibility(current_url):
+    # İlk önce standart yöntemle dene
+    is_accessible = check_url_accessibility(current_url)
+    
+    # Eğer normal yöntem çalışmazsa ve selenium yüklenmiş ise onunla da deneyebiliriz
+    # try:
+    #    if not is_accessible:
+    #        print("Standart yöntem başarısız, Selenium ile deneniyor...")
+    #        is_accessible = check_url_with_selenium(current_url)
+    # except ImportError:
+    #    print("Selenium yüklü değil, standart yöntemle devam ediliyor.")
+    
+    if is_accessible:
         print(f"Mevcut URL ({current_url}) erişilebilir. Değişiklik yapmaya gerek yok.")
         return 0
     
@@ -190,9 +290,25 @@ def main():
         working_url = increment_url_number(working_url)
         print(f"Yeni URL deneniyor: {working_url}")
         
-        if check_url_accessibility(working_url):
+        # Önce standart yöntemle dene
+        is_accessible = check_url_accessibility(working_url)
+        
+        # Eğer normal yöntem çalışmazsa ve selenium yüklenmiş ise onunla da deneyebiliriz
+        # try:
+        #    if not is_accessible:
+        #        print("Standart yöntem başarısız, Selenium ile deneniyor...")
+        #        is_accessible = check_url_with_selenium(working_url)
+        # except ImportError:
+        #    pass
+        
+        if is_accessible:
             print(f"Çalışan URL bulundu: {working_url}")
             break
+        
+        # Denemeler arasında rastgele bir süre bekle (rate limiting'i önlemek için)
+        sleep_time = random.uniform(1, 3)
+        print(f"{sleep_time:.1f} saniye bekleniyor...")
+        time.sleep(sleep_time)
     else:
         print("Erişilebilir bir URL bulunamadı!")
         return 1
@@ -236,3 +352,4 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
+
