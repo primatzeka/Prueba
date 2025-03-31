@@ -36,27 +36,23 @@ def check_url(url, timeout=10):
         print(f"Error checking {url}: {str(e)}")
         return False
 
-def find_gradle_file(start_path):
-    """Recursively search for build.gradle.kts file"""
-    for root, dirs, files in os.walk(start_path):
-        if 'build.gradle.kts' in files:
-            return os.path.join(root, 'build.gradle.kts')
-    return None
-
-def update_files(kt_file_path, gradle_file_path=None):
+def update_files(kt_file_path):
     try:
+        # DizipalV2.kt dosyasının bulunduğu dizini al
+        kt_dir = os.path.dirname(kt_file_path)
+        # build.gradle.kts dosyasının yolu
+        gradle_file_path = os.path.join(kt_dir, "build.gradle.kts")
+        
+        print(f"Kotlin file path: {kt_file_path}")
+        print(f"Gradle file path: {gradle_file_path}")
+
         if not os.path.exists(kt_file_path):
             print(f"Error: {kt_file_path} not found")
             return False
-
-        # Find build.gradle.kts if path not provided
-        if gradle_file_path is None or not os.path.exists(gradle_file_path):
-            gradle_file_path = find_gradle_file('.')
-            if not gradle_file_path:
-                print("Error: build.gradle.kts not found")
-                return False
         
-        print(f"Using gradle file: {gradle_file_path}")
+        if not os.path.exists(gradle_file_path):
+            print(f"Error: {gradle_file_path} not found")
+            return False
 
         with open(kt_file_path, 'r', encoding='utf-8') as f:
             kt_content = f.read()
@@ -96,31 +92,23 @@ def update_files(kt_file_path, gradle_file_path=None):
             # Update build.gradle.kts
             with open(gradle_file_path, 'r', encoding='utf-8') as f:
                 gradle_content = f.read()
+                print("Current gradle content:")
+                print(gradle_content)
 
-            # Try different version patterns
-            version_patterns = [
-                r'version\s*=\s*(\d+)',
-                r'versionCode\s*=\s*(\d+)',
-                r'version\s*=\s*"(\d+)"'
-            ]
-            
-            for pattern in version_patterns:
-                version_match = re.search(pattern, gradle_content)
-                if version_match:
-                    current_version = int(version_match.group(1))
-                    new_version = current_version + 1
-                    print(f"Updating version from {current_version} to {new_version}")
-                    
-                    new_gradle_content = re.sub(
-                        pattern,
-                        lambda m: m.group(0).replace(str(current_version), str(new_version)),
-                        gradle_content
-                    )
-                    
-                    with open(gradle_file_path, 'w', encoding='utf-8') as f:
-                        f.write(new_gradle_content)
-                    print(f"Updated {gradle_file_path}")
-                    break
+            version_match = re.search(r'version\s*=\s*(\d+)', gradle_content)
+            if version_match:
+                current_version = int(version_match.group(1))
+                new_version = current_version + 1
+                print(f"Updating version from {current_version} to {new_version}")
+                
+                new_gradle_content = gradle_content.replace(
+                    f'version = {current_version}',
+                    f'version = {new_version}'
+                )
+                
+                with open(gradle_file_path, 'w', encoding='utf-8') as f:
+                    f.write(new_gradle_content)
+                print(f"Updated {gradle_file_path}")
             else:
                 print("Warning: Version pattern not found in build.gradle.kts")
             
