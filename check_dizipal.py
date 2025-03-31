@@ -101,7 +101,7 @@ def update_files(kt_file_path, gradle_file_path):
         return False
 
 if __name__ == "__main__":
-    kt_path = "Prueba/src/main/kotlin/com/Prueba/DizipalV2.kt"
+    kt_path = "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
     gradle_path = "build.gradle.kts"
     
     print("Starting URL check process...")
