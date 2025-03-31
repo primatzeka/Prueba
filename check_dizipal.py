@@ -1,4 +1,4 @@
-# Bu kod sarapcanagii ve primatzeka' ya aittir. Yine de kullanabilirsiniz.
+# Bu kod sarapcanagii ve primatzeka' ya aittir. İstediginiz gibi kullanabilirsiniz.
 
 import requests
 import re

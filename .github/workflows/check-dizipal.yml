@@ -1,4 +1,4 @@
-# Bu kod sarapcanagii ve primatzeka' ya aittir. Yine de kullanabilirsiniz.
+# Bu kod sarapcanagii ve primatzeka' ya aittir. İstediginiz gibi kullanabilirsiniz.
 name: Check Dizipal URL
 
 on:
@@ -40,7 +40,7 @@ jobs:
           git add .
           git commit -m "Otomatik: Dizipal Güncellenmiştir"
           git push
-          echo "changes_made=true" >> $GITHUB_OUTPUT
+          echo "changes_made=true" >> $GITHUB_OUTPUT 
         else
           echo "changes_made=false" >> $GITHUB_OUTPUT
         fi
