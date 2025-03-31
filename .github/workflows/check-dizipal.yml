@@ -2,12 +2,13 @@ name: Check Dizipal URL
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Run every 6 hours
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     
     steps:
     - name: Checkout repository
@@ -24,7 +25,9 @@ jobs:
         pip install requests
 
     - name: Run URL checker
-      run: python check_dizipal.py
+      run: |
+        python check_dizipal.py
+      continue-on-error: true
       
     - name: Commit and push if changed
       run: |
