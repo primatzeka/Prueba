@@ -36,16 +36,8 @@ def check_url(url, timeout=10):
         print(f"Error checking {url}: {str(e)}")
         return False
 
-def update_files(kt_file_path):
+def update_files(kt_file_path, gradle_file_path):
     try:
-        # DizipalV2.kt dosyasının bulunduğu dizini al
-        kt_dir = os.path.dirname(kt_file_path)
-        # build.gradle.kts dosyasının yolu
-        gradle_file_path = os.path.join(kt_dir, "build.gradle.kts")
-        
-        print(f"Kotlin file path: {kt_file_path}")
-        print(f"Gradle file path: {gradle_file_path}")
-
         if not os.path.exists(kt_file_path):
             print(f"Error: {kt_file_path} not found")
             return False
@@ -53,6 +45,9 @@ def update_files(kt_file_path):
         if not os.path.exists(gradle_file_path):
             print(f"Error: {gradle_file_path} not found")
             return False
+
+        print(f"Kotlin file path: {kt_file_path}")
+        print(f"Gradle file path: {gradle_file_path}")
 
         with open(kt_file_path, 'r', encoding='utf-8') as f:
             kt_content = f.read()
@@ -125,9 +120,10 @@ def update_files(kt_file_path):
 
 if __name__ == "__main__":
     kt_path = "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
+    gradle_path = "DizipalV2/build.gradle.kts"  # Düzeltilmiş gradle dosya yolu
     
     print("Starting URL check process...")
-    if update_files(kt_path):
+    if update_files(kt_path, gradle_path):
         print("Files updated successfully")
         sys.exit(0)
     else:
