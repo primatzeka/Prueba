@@ -1,3 +1,5 @@
+# Bu kod sarapcanagii ve primatzeka' ya aittir. Yine de kullanabilirsiniz.
+
 import requests
 import re
 import os
