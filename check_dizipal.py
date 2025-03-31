@@ -20,7 +20,19 @@ def check_url(url, timeout=10):
     try:
         print(f"Checking URL: {url}")
         response = session.get(url, headers=headers, timeout=timeout, allow_redirects=True)
-        # 200 veya 403 yanıtları geçerli kabul edilir
+        
+        # Yönlendirme varsa kontrol et
+        final_url = response.url
+        if final_url != url:
+            print(f"Redirected to: {final_url}")
+            # Yönlendirilen URL'nin sayısını kontrol et
+            final_number = int(re.search(r'dizipal(\d+)', final_url).group(1))
+            original_number = int(re.search(r'dizipal(\d+)', url).group(1))
+            
+            if final_number > original_number:
+                print(f"Found newer URL: {final_url}")
+                return False  # Mevcut URL çalışmıyor olarak işaretle
+        
         return response.status_code in [200, 403]
     except requests.RequestException as e:
         print(f"Error checking {url}: {str(e)}")
@@ -28,7 +40,6 @@ def check_url(url, timeout=10):
 
 def update_files(kt_file_path, gradle_file_path):
     try:
-        # Check if files exist
         if not os.path.exists(kt_file_path):
             print(f"Error: {kt_file_path} not found")
             return False
@@ -36,11 +47,9 @@ def update_files(kt_file_path, gradle_file_path):
             print(f"Error: {gradle_file_path} not found")
             return False
 
-        # Read DizipalV2.kt
         with open(kt_file_path, 'r', encoding='utf-8') as f:
             kt_content = f.read()
 
-        # Extract current URL
         url_match = re.search(r'override var mainUrl = "(https://dizipal\d+\.com)"', kt_content)
         if not url_match:
             print("Error: URL pattern not found in DizipalV2.kt")
@@ -49,13 +58,11 @@ def update_files(kt_file_path, gradle_file_path):
         current_url = url_match.group(1)
         print(f"Current URL: {current_url}")
 
-        # Check current URL first
         if check_url(current_url):
-            print("Current URL is working fine")
+            print("Current URL is working fine and is the latest version")
             return False
 
-        # Try new URLs
-        base_number = int(re.search(r'\d+', current_url).group())
+        base_number = int(re.search(r'dizipal(\d+)', current_url).group(1))
         max_attempts = 5
         working_url = None
 
@@ -101,7 +108,7 @@ def update_files(kt_file_path, gradle_file_path):
         return False
 
 if __name__ == "__main__":
-    kt_path = "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
+    kt_path = "DizipalV2/src/main/java/com/Prueba/DizipalV2.kt"
     gradle_path = "build.gradle.kts"
     
     print("Starting URL check process...")
