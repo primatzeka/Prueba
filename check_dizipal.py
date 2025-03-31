@@ -20,7 +20,8 @@ def check_url(url, timeout=10):
     try:
         print(f"Checking URL: {url}")
         response = session.get(url, headers=headers, timeout=timeout, allow_redirects=True)
-        return response.status_code == 200
+        # 200 veya 403 yanıtları geçerli kabul edilir
+        return response.status_code in [200, 403]
     except requests.RequestException as e:
         print(f"Error checking {url}: {str(e)}")
         return False
@@ -56,38 +57,42 @@ def update_files(kt_file_path, gradle_file_path):
         # Try new URLs
         base_number = int(re.search(r'\d+', current_url).group())
         max_attempts = 5
+        working_url = None
 
         for i in range(base_number + 1, base_number + max_attempts + 1):
             new_url = f"https://dizipal{i}.com"
             print(f"Trying {new_url}")
             
             if check_url(new_url):
-                print(f"Found working URL: {new_url}")
-                
-                # Update DizipalV2.kt
-                new_kt_content = kt_content.replace(current_url, new_url)
-                with open(kt_file_path, 'w', encoding='utf-8') as f:
-                    f.write(new_kt_content)
-                print(f"Updated {kt_file_path}")
+                working_url = new_url
+                print(f"Found working URL: {working_url}")
+                break
 
-                # Update build.gradle.kts
-                with open(gradle_file_path, 'r', encoding='utf-8') as f:
-                    gradle_content = f.read()
+        if working_url:
+            # Update DizipalV2.kt
+            new_kt_content = kt_content.replace(current_url, working_url)
+            with open(kt_file_path, 'w', encoding='utf-8') as f:
+                f.write(new_kt_content)
+            print(f"Updated {kt_file_path}")
 
-                version_match = re.search(r'version = (\d+)', gradle_content)
-                if version_match:
-                    current_version = int(version_match.group(1))
-                    new_version = current_version + 1
-                    new_gradle_content = gradle_content.replace(
-                        f'version = {current_version}',
-                        f'version = {new_version}'
-                    )
-                    with open(gradle_file_path, 'w', encoding='utf-8') as f:
-                        f.write(new_gradle_content)
-                    print(f"Updated {gradle_file_path}")
-                
-                return True
+            # Update build.gradle.kts
+            with open(gradle_file_path, 'r', encoding='utf-8') as f:
+                gradle_content = f.read()
 
+            version_match = re.search(r'version = (\d+)', gradle_content)
+            if version_match:
+                current_version = int(version_match.group(1))
+                new_version = current_version + 1
+                new_gradle_content = gradle_content.replace(
+                    f'version = {current_version}',
+                    f'version = {new_version}'
+                )
+                with open(gradle_file_path, 'w', encoding='utf-8') as f:
+                    f.write(new_gradle_content)
+                print(f"Updated {gradle_file_path}")
+            
+            return True
+        
         print("No working URL found after maximum attempts")
         return False
 
@@ -96,7 +101,7 @@ def update_files(kt_file_path, gradle_file_path):
         return False
 
 if __name__ == "__main__":
-    kt_path = "DizipalV2/src/main/kotlin/com/Prueba/DizipalV2.kt"
+    kt_path = "Prueba/src/main/kotlin/com/Prueba/DizipalV2.kt"
     gradle_path = "build.gradle.kts"
     
     print("Starting URL check process...")
