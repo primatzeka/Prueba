@@ -31,6 +31,7 @@ jobs:
       continue-on-error: true
       
     - name: Commit and push if changed
+      id: commit
       run: |
         if [[ -n $(git status -s) ]]; then
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -38,11 +39,14 @@ jobs:
           git add .
           git commit -m "Auto: Update Dizipal URL and version"
           git push
+          echo "changes_made=true" >> $GITHUB_OUTPUT
+        else
+          echo "changes_made=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Repository Dispatch
-      if: success()
-      uses: peter-evans/repository-dispatch@v1
+    - name: Trigger Derleyici workflow
+      if: steps.commit.outputs.changes_made == 'true'
+      uses: benc-uk/workflow-dispatch@v1
       with:
-        token: ${{ github.token }}
-        event-type: url-updated
+        workflow: CloudStream Derleyici
+        token: ${{ secrets.MY_GITHUB_TOKEN }}

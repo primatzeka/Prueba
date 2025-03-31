@@ -21,6 +21,9 @@ on:
       - "**/*.m3u"
       - "**/*.m3u8"
       - "**/*.txt"
+  repository_dispatch:
+    types: [url-updated]
+
 jobs:
   CloudStreamDerleyici:
     runs-on: ubuntu-latest
