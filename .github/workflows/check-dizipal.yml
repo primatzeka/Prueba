@@ -27,22 +27,25 @@ jobs:
         pip install requests
 
     - name: Run URL checker
+      id: checker
       run: |
-        python check_dizipal.py
-      continue-on-error: true
+        if python check_dizipal.py; then
+          echo "check_status=success" >> $GITHUB_OUTPUT
+        else
+          echo "check_status=no_changes" >> $GITHUB_OUTPUT
+        fi
       
     - name: Commit and push if changed
       id: commit
+      if: steps.checker.outputs.check_status == 'success'
       run: |
         if [[ -n $(git status -s) ]]; then
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git commit -m "Otomatik: Dizipal Güncellenmiştir"
+          git commit -m "Auto: Update Dizipal URL and version"
           git push
-          echo "changes_made=true" >> $GITHUB_OUTPUT 
-        else
-          echo "changes_made=false" >> $GITHUB_OUTPUT
+          echo "changes_made=true" >> $GITHUB_OUTPUT
         fi
 
     - name: Trigger Derleyici workflow
@@ -51,3 +54,9 @@ jobs:
       with:
         workflow: CloudStream Derleyici
         token: ${{ secrets.MY_GITHUB_TOKEN }}
+
+    - name: No changes needed
+      if: steps.checker.outputs.check_status == 'no_changes'
+      run: |
+        echo "No changes were needed. Everything is up to date."
+        exit 0
