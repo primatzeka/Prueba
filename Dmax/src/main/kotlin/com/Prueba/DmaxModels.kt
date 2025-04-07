@@ -1,4 +1,4 @@
-package com.sarapcanagii
+package com.primatzeka
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
