@@ -1,9 +1,9 @@
 [
     {
-        "iconUrl": "https://www.google.com/s2/favicons?domain=dizipal910&sz=%size%",
+        "iconUrl": "https://www.google.com/s2/favicons?domain=www.dmax.com.tr&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 23486,
+        "fileSize": 17211,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -12,36 +12,17 @@
         "tvTypes": [
             "TvSeries"
         ],
-        "version": 11,
-        "internalName": "DizipalV2",
-        "description": "Dizipal, yabanc\u0131 dizi, yerli dizi - film ve anime izlemeniz i\u00e7in sizinledir.",
-        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/DizipalV2.cs3",
-        "name": "DizipalV2"
-    },
-    {
-        "iconUrl": "https://www.google.com/s2/favicons?domain=www.filmizle.cx&sz=%size%",
-        "apiVersion": 1,
-        "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 26986,
-        "status": 1,
-        "language": "tr",
-        "authors": [
-            "primatzeka"
-        ],
-        "tvTypes": [
-            "Movie"
-        ],
-        "version": 3,
-        "internalName": "Film\u0130zle",
-        "description": "(Film izle ile Full HD Film Keyfini S\u0131n\u0131rs\u0131z Ya\u015fa. Yerli ve yabanc\u0131 filmleri T\u00fcrk\u00e7e dublaj veya T\u00fcrk\u00e7e altyaz\u0131l\u0131 se\u00e7ene\u011fiyle reklams\u0131z film sitesi.",
-        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/Film\u0130zle.cs3",
-        "name": "Film\u0130zle"
+        "version": 1,
+        "internalName": "Dmax",
+        "description": "DMAX dizi ve programlar\u0131n\u0131 takip etmek i\u00e7in ziyaret edin. DMAX dizi ve programlar\u0131n\u0131 tek par\u00e7a ve hd kalitesiyle izleyin.",
+        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/Dmax.cs3",
+        "name": "Dmax"
     },
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=colorhunt.co&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
-        "fileSize": 17231,
+        "fileSize": 17268,
         "status": 1,
         "language": "tr",
         "authors": [
@@ -50,9 +31,9 @@
         "tvTypes": [
             "Live"
         ],
-        "version": 4,
+        "version": 5,
         "internalName": "NeonSpor",
-        "description": "(Tabii Spor Hari\u00e7 Di\u011ferleri i\u00e7in VPN Gerekebilir.) NeonSpor eklentisini de BeIN Spor, Tabii Spor ve S Spor kanallar\u0131 mevcuttur.",
+        "description": "(BeIN Sport i\u00e7in VPN Gerekebilir.) NeonSpor eklentisini de BeIN Sport, Tabii Spor, S Sport ve Di\u011fer kanallar mevcuttur.",
         "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/NeonSpor.cs3",
         "name": "NeonSpor"
     }
