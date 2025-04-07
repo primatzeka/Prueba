@@ -41,7 +41,7 @@ class Dmax : MainAPI() {
         val episode   = this.selectFirst("div.slide div.slide-content h1")?.text()?: return null
         val title     = "$name $episode"
 
-        val href      = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
+        val href      = fixUrlNull("https://www.dmax.com.tr/ikinci-el-krallari") ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("div.slide div.slide-background")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href.substringBefore("/sezon"), TvType.TvSeries) {
@@ -51,7 +51,7 @@ class Dmax : MainAPI() {
 
     private fun Element.diziler(): SearchResponse? {
         val title     = this.selectFirst("div.slide div.slide-content h1")?.text() ?: return null
-        val href      = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
+        val href      = fixUrlNull("https://www.dmax.com.tr/ikinci-el-krallari") ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("div.slide div.slide-background")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) { this.posterUrl = posterUrl }
