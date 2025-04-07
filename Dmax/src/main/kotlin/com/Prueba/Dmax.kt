@@ -20,7 +20,7 @@ class Dmax : MainAPI() {
     
     override val mainPage = mainPageOf(
         "${mainUrl}/ikinci-el-krallari"                            to "İkinci El Kralları",
-        "${mainUrl}/ikinci-el-krallari"                            to "İkinci El Kralları",
+        "${mainUrl}/ikinci-el-krallari"                            to "İkinci El Kralları 2",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
@@ -38,7 +38,7 @@ class Dmax : MainAPI() {
 
     private fun Element.sonBolumler(): SearchResponse? {
         val name      = this.selectFirst("div.slide div.slide-content h1")?.text() ?: return null
-        val episode   = this.selectFirst("div.episode")?.text()?.trim()?.replace(". Sezon ", "x")?.replace(". Bölüm", "") ?: return null
+        val episode   = this.selectFirst("div.slide div.slide-content h1")?.text()?: return null
         val title     = "$name $episode"
 
         val href      = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
