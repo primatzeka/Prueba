@@ -105,8 +105,8 @@ class Dmax : MainAPI() {
         val rating      = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div").text().trim().toRatingInt()
         val duration    = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div").text())?.value?.toIntOrNull()
 
-        if (url.contains("/dizi/")) {
-            val title       = document.selectFirst("div.cover h5")?.text() ?: return null
+        if (url.contains("/ikinci-el-krallari")) {
+            val title       = document.selectFirst("div.slide div.slide-content h1")?.text() ?: return null
 
             val episodes    = document.select("div.episode-item").mapNotNull {
                 val epName    = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
