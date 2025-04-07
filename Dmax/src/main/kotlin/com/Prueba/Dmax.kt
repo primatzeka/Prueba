@@ -50,9 +50,9 @@ class Dmax : MainAPI() {
     }
 
     private fun Element.diziler(): SearchResponse? {
-        val title     = this.selectFirst("span.title")?.text() ?: return null
+        val title     = this.selectFirst("div.slide div.slide-content h1")?.text() ?: return null
         val href      = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.selectFirst("div.slide div.slide-background")?.attr("data-src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) { this.posterUrl = posterUrl }
     }
