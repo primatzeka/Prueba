@@ -21,10 +21,8 @@ class DiziPal : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
 
-    // CloudFlare bypass
     override var sequentialMainPage = true
 
-    // CloudFlare v2
     private val cloudflareKiller by lazy { CloudflareKiller() }
     private val interceptor by lazy { CloudflareInterceptor(cloudflareKiller) }
 
@@ -173,26 +171,51 @@ class DiziPal : MainAPI() {
         }
     }
 
-    override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
+    override suspend fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
         Log.d("DZP", "data » $data")
-        val document = app.get(data).document
-        val iframe = document.selectFirst(".series-player-container iframe")?.attr("src")
-            ?: document.selectFirst("div#vast_new iframe")?.attr("src") ?: return false
-        Log.d("DZP", "iframe » $iframe")
+        
+        try {
+            val document = app.get(data).document
+            val iframe = document.selectFirst(".series-player-container iframe")?.attr("src")
+                ?: document.selectFirst("div#vast_new iframe")?.attr("src") ?: return false
+            Log.d("DZP", "iframe » $iframe")
 
-        val iSource = app.get(iframe, referer = "$mainUrl/").text
-        val m3uLink = Regex("""file:\"([^\"]+)""").find(iSource)?.groupValues?.get(1)
-        if (m3uLink == null) {
-            Log.d("DZP", "iSource » $iSource")
-            return loadExtractor(iframe, "$mainUrl/", subtitleCallback, callback)
-        }
+            val iSource = app.get(
+                iframe,
+                referer = "$mainUrl/",
+                headers = mapOf(
+                    "Accept" to "*/*",
+                    "Sec-Fetch-Site" to "cross-site",
+                    "Sec-Fetch-Mode" to "cors",
+                    "Sec-Fetch-Dest" to "empty"
+                )
+            ).text
 
-        val subtitles = Regex("""\"subtitle":\"([^\"]+)""").find(iSource)?.groupValues?.get(1)
-        subtitles?.let {
-            if (it.contains(",")) {
-                it.split(",").forEach { sub ->
-                    val subLang = sub.substringAfter("[").substringBefore("]")
-                    val subUrl = sub.replace("[$subLang]", "")
+            val m3uLink = Regex("""(?:file|source):[\s"]*([^"'\s]+)""", RegexOption.IGNORE_CASE)
+                .find(iSource)?.groupValues?.get(1)
+
+            val subtitles = Regex("""\"subtitle":\"([^\"]+)""").find(iSource)?.groupValues?.get(1)
+            subtitles?.let {
+                if (it.contains(",")) {
+                    it.split(",").forEach { sub ->
+                        val subLang = sub.substringAfter("[").substringBefore("]")
+                        val subUrl = sub.replace("[$subLang]", "")
+
+                        subtitleCallback(
+                            SubtitleFile(
+                                lang = subLang,
+                                url = fixUrl(subUrl)
+                            )
+                        )
+                    }
+                } else {
+                    val subLang = it.substringAfter("[").substringBefore("]")
+                    val subUrl = it.replace("[$subLang]", "")
 
                     subtitleCallback(
                         SubtitleFile(
@@ -201,31 +224,36 @@ class DiziPal : MainAPI() {
                         )
                     )
                 }
-            } else {
-                val subLang = it.substringAfter("[").substringBefore("]")
-                val subUrl = it.replace("[$subLang]", "")
+            }
 
-                subtitleCallback(
-                    SubtitleFile(
-                        lang = subLang,
-                        url = fixUrl(subUrl)
+            if (!m3uLink.isNullOrBlank() && (m3uLink.contains(".m3u8") || m3uLink.contains("/hls/"))) {
+                val finalUrl = if (!m3uLink.startsWith("http")) {
+                    if (m3uLink.startsWith("//")) "https:$m3uLink"
+                    else "${mainUrl}${if (!m3uLink.startsWith("/")) "/" else ""}$m3uLink"
+                } else m3uLink
+
+                callback.invoke(
+                    ExtractorLink(
+                        source = this.name,
+                        name = this.name,
+                        url = finalUrl,
+                        referer = iframe,
+                        quality = Qualities.Unknown.value,
+                        type = STREAM_TYPE_HLS,
+                        headers = mapOf(
+                            "Referer" to iframe,
+                            "Origin" to mainUrl,
+                            "User-Agent" to USER_AGENT
+                        )
                     )
                 )
+                return true
+            } else {
+                return loadExtractor(iframe, "$mainUrl/", subtitleCallback, callback)
             }
+        } catch (e: Exception) {
+            Log.e("DZP", "M3U8 extraction failed: ${e.message}")
+            return loadExtractor(data, "$mainUrl/", subtitleCallback, callback)
         }
-
-        callback.invoke(
-            newExtractorLink(
-        source = this.name,
-        name = this.name,
-        url = m3uLink,
-        type = ExtractorLinkType.M3U8
-        ) {
-        headers = mapOf("Referer" to "${mainUrl}/")
-        quality = Qualities.Unknown.value // Kalite ayarlandı
-          }
-        )
-
-        return true
     }
 }
