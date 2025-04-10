@@ -41,7 +41,7 @@ class DiziPalV2 : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-        "${mainUrl}/diziler/son-bolumler" to "Son Bölümler",
+        "${mainUrl}/bolumler" to "Son Bölümler",
         "${mainUrl}/diziler" to "Yeni Diziler",
         "${mainUrl}/filmler" to "Yeni Filmler",
         "${mainUrl}/koleksiyon/netflix" to "Netflix",
@@ -63,8 +63,8 @@ class DiziPalV2 : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(request.data).document
-        val home = if (request.data.contains("/diziler/son-bolumler")) {
-            document.select("div.episode-item").mapNotNull { it.sonBolumler() }
+        val home = if (request.data.contains("/son-bolumler")) {
+            document.select("article.post.dfx.fcl").mapNotNull { it.sonBolumler() }
         } else {
             document.select("article.type2 ul li").mapNotNull { it.diziler() }
         }
@@ -73,12 +73,12 @@ class DiziPalV2 : MainAPI() {
     }
 
     private suspend fun Element.sonBolumler(): SearchResponse? {
-        val name = this.selectFirst("div.name")?.text() ?: return null
-        val episode = this.selectFirst("div.episode")?.text()?.trim()?.replace(". Sezon ", "x")?.replace(". Bölüm", "") ?: return null
+        val name = this.selectFirst("header.entry-header h2.entry-title")?.text() ?: return null
+        val episode = this.selectFirst("header.entry-header h2.num-epi")?.text()?.trim()?.replace(". Sezon ", "x")?.replace(". Bölüm", "") ?: return null
         val title = "$name $episode"
 
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.selectFirst("div.post-thumbnail img")?.attr("src"))
 
         return newTvSeriesSearchResponse(title, href.substringBefore("/sezon"), TvType.TvSeries) {
             this.posterUrl = posterUrl
