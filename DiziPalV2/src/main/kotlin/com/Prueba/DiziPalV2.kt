@@ -123,24 +123,27 @@ class DiziPalV2 : MainAPI() {
     override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
 
     override suspend fun load(url: String): LoadResponse? {
-        val document = app.get(url).document
-
+        // URL'nin sonundaki "/" işaretini kaldır
+        val cleanUrl = url.trimEnd('/')
+        
+        val document = app.get(cleanUrl).document
+    
         val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
         val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div").text().trim().toIntOrNull()
         val description = document.selectFirst("div.summary p")?.text()?.trim()
         val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div").text().trim().split(" ").mapNotNull { it.trim() }
         val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div").text().trim().toRatingInt()
         val duration = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div").text() ?: "")?.value?.toIntOrNull()
-
-        return if (url.contains("/dizi/")) {
+    
+        return if (cleanUrl.contains("/dizi/")) {
             val title = document.selectFirst("div.cover h5")?.text() ?: return null
-
+    
             val episodes = document.select("div.episode-item").mapNotNull {
                 val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
-                val epHref = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                val epHref = fixUrlNull(it.selectFirst("a")?.attr("href"))?.trimEnd('/') ?: return@mapNotNull null
                 val epEpisode = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(2)?.replace(".", "")?.toIntOrNull()
                 val epSeason = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(0)?.replace(".", "")?.toIntOrNull()
-
+    
                 Episode(
                     data = epHref,
                     name = epName,
@@ -148,8 +151,8 @@ class DiziPalV2 : MainAPI() {
                     episode = epEpisode
                 )
             }
-
-            newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+    
+            newTvSeriesLoadResponse(title, cleanUrl, TvType.TvSeries, episodes) {
                 this.posterUrl = poster
                 this.year = year
                 this.plot = description
@@ -159,8 +162,8 @@ class DiziPalV2 : MainAPI() {
             }
         } else {
             val title = document.selectXpath("//div[@class='g-title'][2]/div").text().trim()
-
-            newMovieLoadResponse(title, url, TvType.Movie, url) {
+    
+            newMovieLoadResponse(title, cleanUrl, TvType.Movie, cleanUrl) {
                 this.posterUrl = poster
                 this.year = year
                 this.plot = description
