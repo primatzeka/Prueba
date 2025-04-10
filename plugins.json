@@ -1,5 +1,25 @@
 [
     {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=https://dizipal683.com&sz=%size%",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/primatzeka/Prueba",
+        "fileSize": 18919,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "primatzeka"
+        ],
+        "tvTypes": [
+            "TvSeries",
+            "Movie"
+        ],
+        "version": 26,
+        "internalName": "DiziPal",
+        "description": "en yeni dizileri g\u00fcvenli ve h\u0131zl\u0131 \u015fekilde sunar.",
+        "url": "https://raw.githubusercontent.com/primatzeka/Prueba/builds/DiziPal.cs3",
+        "name": "DiziPal"
+    },
+    {
         "iconUrl": "https://www.google.com/s2/favicons?domain=www.dmax.com.tr&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/primatzeka/Prueba",
