@@ -184,7 +184,7 @@ class DiziPal : MainAPI() {
             val iframe = document.selectFirst(".series-player-container iframe")?.attr("src")
                 ?: document.selectFirst("div#vast_new iframe")?.attr("src") ?: return false
             Log.d("DZP", "iframe » $iframe")
-
+    
             val iSource = app.get(
                 iframe,
                 referer = "$mainUrl/",
@@ -195,17 +195,17 @@ class DiziPal : MainAPI() {
                     "Sec-Fetch-Dest" to "empty"
                 )
             ).text
-
+    
             val m3uLink = Regex("""(?:file|source):[\s"]*([^"'\s]+)""", RegexOption.IGNORE_CASE)
                 .find(iSource)?.groupValues?.get(1)
-
+    
             val subtitles = Regex("""\"subtitle":\"([^\"]+)""").find(iSource)?.groupValues?.get(1)
             subtitles?.let {
                 if (it.contains(",")) {
                     it.split(",").forEach { sub ->
                         val subLang = sub.substringAfter("[").substringBefore("]")
                         val subUrl = sub.replace("[$subLang]", "")
-
+    
                         subtitleCallback(
                             SubtitleFile(
                                 lang = subLang,
@@ -216,7 +216,7 @@ class DiziPal : MainAPI() {
                 } else {
                     val subLang = it.substringAfter("[").substringBefore("]")
                     val subUrl = it.replace("[$subLang]", "")
-
+    
                     subtitleCallback(
                         SubtitleFile(
                             lang = subLang,
@@ -225,13 +225,13 @@ class DiziPal : MainAPI() {
                     )
                 }
             }
-
+    
             if (!m3uLink.isNullOrBlank() && (m3uLink.contains(".m3u8") || m3uLink.contains("/hls/"))) {
                 val finalUrl = if (!m3uLink.startsWith("http")) {
                     if (m3uLink.startsWith("//")) "https:$m3uLink"
                     else "${mainUrl}${if (!m3uLink.startsWith("/")) "/" else ""}$m3uLink"
                 } else m3uLink
-
+    
                 callback.invoke(
                     ExtractorLink(
                         source = this.name,
@@ -239,7 +239,7 @@ class DiziPal : MainAPI() {
                         url = finalUrl,
                         referer = iframe,
                         quality = Qualities.Unknown.value,
-                        type = STREAM_TYPE_HLS,
+                        type = ExtractorLinkType.M3U8,
                         headers = mapOf(
                             "Referer" to iframe,
                             "Origin" to mainUrl,
