@@ -42,8 +42,8 @@ class DiziPalV2 : MainAPI() {
 
     override val mainPage = mainPageOf(
         "${mainUrl}/bolumler" to "Son Bölümler",
-        "${mainUrl}/diziler" to "Yeni Diziler",
-        "${mainUrl}/filmler" to "Yeni Filmler",
+        "${mainUrl}/dizi" to "Yeni Diziler",
+        "${mainUrl}/film" to "Yeni Filmler",
         "${mainUrl}/koleksiyon/netflix" to "Netflix",
         "${mainUrl}/koleksiyon/exxen" to "Exxen",
         "${mainUrl}/koleksiyon/blutv" to "BluTV",
@@ -63,10 +63,10 @@ class DiziPalV2 : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get(request.data).document
-        val home = if (request.data.contains("/son-bolumler")) {
+        val home = if (request.data.contains("/bolumler")) {
             document.select("article.post.dfx.fcl").mapNotNull { it.sonBolumler() }
         } else {
-            document.select("article.type2 ul li").mapNotNull { it.diziler() }
+            document.select("article.post.dfx.fcl.movies").mapNotNull { it.diziler() }
         }
 
         return newHomePageResponse(request.name, home, hasNext = false)
@@ -86,9 +86,9 @@ class DiziPalV2 : MainAPI() {
     }
 
     private fun Element.diziler(): SearchResponse? {
-        val title = this.selectFirst("span.title")?.text() ?: return null
+        val title = this.selectFirst("header.entry-header h2.entry-title")?.text() ?: return null
         val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.selectFirst("div.post-thumbnail.or-1 img")?.attr("src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) { this.posterUrl = posterUrl }
     }
