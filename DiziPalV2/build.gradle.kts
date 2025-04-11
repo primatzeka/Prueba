@@ -14,5 +14,15 @@ cloudstream {
     **/
     status  = 1 // will be 3 if unspecified
     tvTypes = listOf("TvSeries", "Movie")
-    iconUrl = "https://www.google.com/s2/favicons?domain=https://dizipal683.com&sz=%size%"
+
+    // Dosya ve regex tanımlamaları
+    val mainKtFile = file("src/main/kotlin/com/Prueba/DiziPalV2.kt")
+    val mainUrlRegex = """mainUrl\s*=\s*"https://([^"]+)"""".toRegex()
+
+    val domain = mainKtFile.readText().let { content ->
+        mainUrlRegex.find(content)?.groupValues?.get(1) ?: "dizipal1015.com"
+    }
+
+    // Burada iconUrl'yi tanımlayın
+    project.extra["iconUrl"] = "https://www.google.com/s2/favicons?domain=https://$domain&sz=%size%"
 }
