@@ -175,7 +175,13 @@ class DiziPalV2 : MainAPI() {
         }
     }
 
-    override suspend fun load(url: String): LoadResponse? {
+    override suspend fun loadLinks(
+      data: String,
+      isCasting: Boolean,
+      subtitleCallback: (SubtitleFile) -> Unit,
+      callback: (ExtractorLink) -> Unit
+  ): Boolean {
+      Log.d("DZP", "Loading URL: $data")
     try {
         // URL'yi temizle ve düzelt
         val cleanUrl = url.trim().removeSuffix("/")
