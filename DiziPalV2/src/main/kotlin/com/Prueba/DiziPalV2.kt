@@ -126,134 +126,186 @@ class DiziPalV2 : MainAPI() {
     override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
 
     override suspend fun load(url: String): LoadResponse? {
-        val cleanUrl = fixUrl(url)
-        val document = app.get(cleanUrl).document
-    
-        val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
-        val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div").text().trim().toIntOrNull()
-        val description = document.selectFirst("div.summary p")?.text()?.trim()
-        val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div").text().trim().split(" ").mapNotNull { it.trim() }
-        val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div").text().trim().toRatingInt()
-        val duration = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div").text() ?: "")?.value?.toIntOrNull()
-    
-        return if (cleanUrl.contains("/dizi/")) {
-            val title = document.selectFirst("div.cover h5")?.text() ?: return null
-    
-            val episodes = document.select("div.episode-item").mapNotNull {
-                val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
-                val epHref = fixUrl(fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null)
-                val epEpisode = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(2)?.replace(".", "")?.toIntOrNull()
-                val epSeason = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(0)?.replace(".", "")?.toIntOrNull()
-    
-                Episode(
-                    data = epHref,
-                    name = epName,
-                    season = epSeason,
-                    episode = epEpisode
-                )
-            }
-    
-            newTvSeriesLoadResponse(title, cleanUrl, TvType.TvSeries, episodes) {
-                this.posterUrl = poster
-                this.year = year
-                this.plot = description
-                this.tags = tags
-                this.rating = rating
-                this.duration = duration
-            }
-        } else {
-            val title = document.selectXpath("//div[@class='g-title'][2]/div").text().trim()
-    
-            newMovieLoadResponse(title, cleanUrl, TvType.Movie, cleanUrl) {
-                this.posterUrl = poster
-                this.year = year
-                this.plot = description
-                this.tags = tags
-                this.rating = rating
-                this.duration = duration
-            }
-        }
+          try {
+              // URL'yi temizle ve düzelt
+              val cleanUrl = url.trim().removeSuffix("/")
+              Log.d("DZP", "Loading URL: $cleanUrl")
+      
+              // Sayfayı çek
+              val document = app.get(
+                  cleanUrl,
+                  headers = mapOf(
+                      "User-Agent" to USER_AGENT,
+                      "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                      "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
+                      "Connection" to "keep-alive",
+                      "Upgrade-Insecure-Requests" to "1"
+                  ),
+                  timeout = 25 // Timeout süresini artır
+              ).document
+      
+              val title = if (cleanUrl.contains("/dizi/")) {
+                  document.selectFirst("div.cover h5")?.text()
+              } else {
+                  document.selectXpath("//div[@class='g-title'][2]/div")?.text()?.trim()
+              } ?: throw Exception("Title not found")
+      
+              val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
+              val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div")?.text()?.trim()?.toIntOrNull()
+              val description = document.selectFirst("div.summary p")?.text()?.trim()
+              val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div")?.text()?.trim()?.split(" ")?.mapNotNull { it.trim() }
+              val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div")?.text()?.trim()?.toRatingInt()
+              val duration = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div")?.text() ?: "")?.value?.toIntOrNull()
+      
+              return if (cleanUrl.contains("/dizi/")) {
+                  val episodes = document.select("div.episode-item").mapNotNull {
+                      val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
+                      val epHref = fixUrlNull(it.selectFirst("a")?.attr("href"))?.removeSuffix("/") ?: return@mapNotNull null
+                      val epText = it.selectFirst("div.episode")?.text()?.trim() ?: return@mapNotNull null
+                      
+                      val seasonMatch = Regex("(\\d+)\\. Sezon").find(epText)
+                      val episodeMatch = Regex("(\\d+)\\. Bölüm").find(epText)
+                      
+                      val epSeason = seasonMatch?.groupValues?.get(1)?.toIntOrNull()
+                      val epNumber = episodeMatch?.groupValues?.get(1)?.toIntOrNull()
+      
+                      Episode(
+                          data = epHref,
+                          name = epName,
+                          season = epSeason,
+                          episode = epNumber
+                      )
+                  }
+      
+                  newTvSeriesLoadResponse(title, cleanUrl, TvType.TvSeries, episodes) {
+                      this.posterUrl = poster
+                      this.year = year
+                      this.plot = description
+                      this.tags = tags
+                      this.rating = rating
+                      this.duration = duration
+                  }
+              } else {
+                  newMovieLoadResponse(title, cleanUrl, TvType.Movie, cleanUrl) {
+                      this.posterUrl = poster
+                      this.year = year
+                      this.plot = description
+                      this.tags = tags
+                      this.rating = rating
+                      this.duration = duration
+                  }
+              }
+          } catch (e: Exception) {
+              Log.e("DZP", "Error during load: ${e.message}", e)
+              return null
+          }
+      }
     }
 
     override suspend fun loadLinks(
-      data: String,
-      isCasting: Boolean,
-      subtitleCallback: (SubtitleFile) -> Unit,
-      callback: (ExtractorLink) -> Unit
-  ): Boolean {
-      Log.d("DZP", "Loading URL: $data")
-    try {
-        // URL'yi temizle ve düzelt
-        val cleanUrl = url.trim().removeSuffix("/")
-        Log.d("DZP", "Loading URL: $cleanUrl")
-
-        // Sayfayı çek
-        val document = app.get(
-            cleanUrl,
-            headers = mapOf(
-                "User-Agent" to USER_AGENT,
-                "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
-                "Connection" to "keep-alive",
-                "Upgrade-Insecure-Requests" to "1"
-            ),
-            timeout = 25 // Timeout süresini artır
-        ).document
-
-        val title = if (cleanUrl.contains("/dizi/")) {
-            document.selectFirst("div.cover h5")?.text()
-        } else {
-            document.selectXpath("//div[@class='g-title'][2]/div")?.text()?.trim()
-        } ?: throw Exception("Title not found")
-
-        val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
-        val year = document.selectXpath("//div[text()='Yapım Yılı']//following-sibling::div")?.text()?.trim()?.toIntOrNull()
-        val description = document.selectFirst("div.summary p")?.text()?.trim()
-        val tags = document.selectXpath("//div[text()='Türler']//following-sibling::div")?.text()?.trim()?.split(" ")?.mapNotNull { it.trim() }
-        val rating = document.selectXpath("//div[text()='IMDB Puanı']//following-sibling::div")?.text()?.trim()?.toRatingInt()
-        val duration = Regex("(\\d+)").find(document.selectXpath("//div[text()='Ortalama Süre']//following-sibling::div")?.text() ?: "")?.value?.toIntOrNull()
-
-        return if (cleanUrl.contains("/dizi/")) {
-            val episodes = document.select("div.episode-item").mapNotNull {
-                val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
-                val epHref = fixUrlNull(it.selectFirst("a")?.attr("href"))?.removeSuffix("/") ?: return@mapNotNull null
-                val epText = it.selectFirst("div.episode")?.text()?.trim() ?: return@mapNotNull null
-                
-                val seasonMatch = Regex("(\\d+)\\. Sezon").find(epText)
-                val episodeMatch = Regex("(\\d+)\\. Bölüm").find(epText)
-                
-                val epSeason = seasonMatch?.groupValues?.get(1)?.toIntOrNull()
-                val epNumber = episodeMatch?.groupValues?.get(1)?.toIntOrNull()
-
-                Episode(
-                    data = epHref,
-                    name = epName,
-                    season = epSeason,
-                    episode = epNumber
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        Log.d("DZP", "Loading URL: $data")
+        
+        try {
+            val document = app.get(
+                data,
+                headers = mapOf(
+                    "User-Agent" to USER_AGENT,
+                    "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
+                    "Connection" to "keep-alive",
+                    "Sec-Fetch-Dest" to "document",
+                    "Sec-Fetch-Mode" to "navigate",
+                    "Sec-Fetch-Site" to "none",
+                    "Upgrade-Insecure-Requests" to "1"
                 )
+            ).document
+    
+            val iframe = (document.selectFirst(".series-player-container iframe")?.attr("src")
+                ?: document.selectFirst("div#vast_new iframe")?.attr("src"))?.let { fixUrl(it) }
+                ?: throw Exception("Iframe not found")
+    
+            Log.d("DZP", "Found iframe: $iframe")
+    
+            val iframeResponse = app.get(
+                iframe,
+                headers = mapOf(
+                    "User-Agent" to USER_AGENT,
+                    "Accept" to "*/*",
+                    "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
+                    "Connection" to "keep-alive",
+                    "Referer" to data,
+                    "Sec-Fetch-Dest" to "iframe",
+                    "Sec-Fetch-Mode" to "navigate",
+                    "Sec-Fetch-Site" to "cross-site"
+                )
+            )
+    
+            val iSource = iframeResponse.text
+            Log.d("DZP", "iSource length: ${iSource.length}")
+    
+            // M3U8 linki için genişletilmiş regex
+            val m3uLink = (Regex("""["']?file["']?\s*[:=]\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1)
+                ?: Regex("""source:\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1))?.trim()
+    
+            Log.d("DZP", "Found M3U8 link: $m3uLink")
+    
+            if (!m3uLink.isNullOrBlank()) {
+                // Altyazıları işle
+                val subtitles = Regex("""["']?subtitle["']?\s*:\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1)
+                subtitles?.let {
+                    if (it.contains(",")) {
+                        it.split(",").forEach { sub ->
+                            val subLang = sub.substringAfter("[").substringBefore("]")
+                            val subUrl = sub.replace("[$subLang]", "").trim()
+                            subtitleCallback.invoke(
+                                SubtitleFile(
+                                    lang = subLang,
+                                    url = fixUrl(subUrl)
+                                )
+                            )
+                        }
+                    } else {
+                        val subLang = it.substringAfter("[").substringBefore("]")
+                        val subUrl = it.replace("[$subLang]", "").trim()
+                        subtitleCallback.invoke(
+                            SubtitleFile(
+                                lang = subLang,
+                                url = fixUrl(subUrl)
+                            )
+                        )
+                    }
+                }
+    
+                // M3U8 stream'i ekle
+                callback.invoke(
+                    ExtractorLink(
+                        source = name,
+                        name = name,
+                        url = m3uLink,
+                        referer = iframe,
+                        quality = Qualities.Unknown.value,
+                        type = ExtractorLinkType.M3U8,
+                        headers = mapOf(
+                            "Origin" to mainUrl,
+                            "Referer" to iframe,
+                            "User-Agent" to USER_AGENT
+                        )
+                    )
+                )
+                return true
+            } else {
+                Log.d("DZP", "No M3U8 link found, trying extractor")
+                return loadExtractor(iframe, data, subtitleCallback, callback)
             }
-
-            newTvSeriesLoadResponse(title, cleanUrl, TvType.TvSeries, episodes) {
-                this.posterUrl = poster
-                this.year = year
-                this.plot = description
-                this.tags = tags
-                this.rating = rating
-                this.duration = duration
-            }
-        } else {
-            newMovieLoadResponse(title, cleanUrl, TvType.Movie, cleanUrl) {
-                this.posterUrl = poster
-                this.year = year
-                this.plot = description
-                this.tags = tags
-                this.rating = rating
-                this.duration = duration
-            }
+    
+        } catch (e: Exception) {
+            Log.e("DZP", "Error loading links: ${e.message}", e)
+            return false
         }
-    } catch (e: Exception) {
-        Log.e("DZP", "Error during load: ${e.message}", e)
-        return null
     }
-}
 }
