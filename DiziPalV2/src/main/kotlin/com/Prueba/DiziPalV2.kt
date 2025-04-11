@@ -22,7 +22,10 @@ class DiziPalV2 : MainAPI() {
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
 
     override var sequentialMainPage = true
-
+    // URL'leri düzeltmek için yardımcı fonksiyon ekleyelim
+    private fun fixUrl(url: String): String {
+        return url.replace(Regex("/+$"), "")  // Sondaki tüm / işaretlerini kaldır
+    }
     private val cloudflareKiller by lazy { CloudflareKiller() }
     private val interceptor by lazy { CloudflareInterceptor(cloudflareKiller) }
 
@@ -77,7 +80,7 @@ class DiziPalV2 : MainAPI() {
         val episode = this.selectFirst("header.entry-header h2.num-epi")?.text()?.trim()?.replace(". Sezon ", "x")?.replace(". Bölüm", "") ?: return null
         val title = "$name $episode"
 
-        val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
+        val href = fixUrl(fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null)
         val posterUrl = fixUrlNull(this.selectFirst("div.post-thumbnail img")?.attr("src"))
 
         return newTvSeriesSearchResponse(title, href.substringBefore("/sezon"), TvType.TvSeries) {
@@ -87,7 +90,7 @@ class DiziPalV2 : MainAPI() {
 
     private fun Element.diziler(): SearchResponse? {
         val title = this.selectFirst("header.entry-header h2.entry-title")?.text() ?: return null
-        val href = fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null
+        val href = fixUrl(fixUrlNull(this.selectFirst("a")?.attr("href")) ?: return null)
         val posterUrl = fixUrlNull(this.selectFirst("div.post-thumbnail.or-1 img")?.attr("src"))
 
         return newTvSeriesSearchResponse(title, href, TvType.TvSeries) { this.posterUrl = posterUrl }
@@ -95,7 +98,7 @@ class DiziPalV2 : MainAPI() {
 
     private fun SearchItem.toPostSearchResult(): SearchResponse {
         val title = this.title
-        val href = "${mainUrl}${this.url}"
+        val href = fixUrl("${mainUrl}${this.url}")
         val posterUrl = this.poster
 
         return if (this.type == "series") {
@@ -123,9 +126,7 @@ class DiziPalV2 : MainAPI() {
     override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
 
     override suspend fun load(url: String): LoadResponse? {
-        // URL'nin sonundaki "/" işaretini kaldır
-        val cleanUrl = url.trimEnd('/')
-        
+        val cleanUrl = fixUrl(url)
         val document = app.get(cleanUrl).document
     
         val poster = fixUrlNull(document.selectFirst("[property='og:image']")?.attr("content"))
@@ -140,7 +141,7 @@ class DiziPalV2 : MainAPI() {
     
             val episodes = document.select("div.episode-item").mapNotNull {
                 val epName = it.selectFirst("div.name")?.text()?.trim() ?: return@mapNotNull null
-                val epHref = fixUrlNull(it.selectFirst("a")?.attr("href"))?.trimEnd('/') ?: return@mapNotNull null
+                val epHref = fixUrl(fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null)
                 val epEpisode = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(2)?.replace(".", "")?.toIntOrNull()
                 val epSeason = it.selectFirst("div.episode")?.text()?.trim()?.split(" ")?.get(0)?.replace(".", "")?.toIntOrNull()
     
@@ -180,10 +181,10 @@ class DiziPalV2 : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        Log.d("DZP", "data » $data")
+        val cleanData = fixUrl(data)
         
         try {
-            val document = app.get(data).document
+            val document = app.get(cleanData).document
             val iframe = document.selectFirst(".series-player-container iframe")?.attr("src")
                 ?: document.selectFirst("div#vast_new iframe")?.attr("src") ?: return false
             Log.d("DZP", "iframe » $iframe")
@@ -255,8 +256,8 @@ class DiziPalV2 : MainAPI() {
                 return loadExtractor(iframe, "$mainUrl/", subtitleCallback, callback)
             }
         } catch (e: Exception) {
-            Log.e("DZP", "M3U8 extraction failed: ${e.message}")
-            return loadExtractor(data, "$mainUrl/", subtitleCallback, callback)
+            Log.e("DZP", "Link extraction failed: ${e.message}")
+            return loadExtractor(cleanData, mainUrl, subtitleCallback, callback)
         }
     }
 }
