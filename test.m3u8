@@ -4,5 +4,5 @@
 #EXTVLCOPT:http-referrer=https://www.dmax.com.tr/
 https://dmax-p2.mncdn.com/delivery/2021/04/02/65002_bd1fab2834c0b5d4d262c0d1410018cc.smil/chunklist_b2495627_sleng.m3u8?st=3JncWIzO9ZwITehGIlOitg&e=1744114396&r=13
 
-#EXTINF:-1 tvg-id="aspor" tvg-name="A Spor" tvg-language="Turkish" tvg-country="TR" tvg-logo="https://seeklogo.com/images/B/bein-sports-1-logo-4E5E4AE6B8-seeklogo.com.png" group-title="aspor",A Spor
-https://dmax-p2.mncdn.com/delivery/2021/04/02/65002_bd1fab2834c0b5d4d262c0d1410018cc.smil/chunklist_b2495627_sleng.m3u8?st=3JncWIzO9ZwITehGIlOitg&e=1744114396&r=13
+#EXTINF:-1 tvg-id="aspor" tvg-name="A Spor" tvg-language="Turkish" tvg-country="TR" tvg-logo="https://seeklogo.com/images/B/bein-sports-1-logo-4E5E4AE6B8-seeklogo.com.png" group-title="aspor",A Spor gggg
+https://liveexxenpr.akamaized.net/c3335277d6e34da1940bce20054502a5/eu-central-1/6415845530001/profile_0/chunklist.m3u8?bcov_auth=<esi:include%20src=/bcov_auth%20/>
