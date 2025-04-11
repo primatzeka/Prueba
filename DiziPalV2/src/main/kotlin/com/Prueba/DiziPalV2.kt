@@ -181,83 +181,104 @@ class DiziPalV2 : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val cleanData = fixUrl(data)
+        Log.d("DZP", "Loading URL: $data")
         
         try {
-            val document = app.get(cleanData).document
-            val iframe = document.selectFirst(".series-player-container iframe")?.attr("src")
-                ?: document.selectFirst("div#vast_new iframe")?.attr("src") ?: return false
-            Log.d("DZP", "iframe » $iframe")
-    
-            val iSource = app.get(
-                iframe,
-                referer = "$mainUrl/",
+            val document = app.get(
+                data,
                 headers = mapOf(
-                    "Accept" to "*/*",
-                    "Sec-Fetch-Site" to "cross-site",
-                    "Sec-Fetch-Mode" to "cors",
-                    "Sec-Fetch-Dest" to "empty"
+                    "User-Agent" to USER_AGENT,
+                    "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
+                    "Connection" to "keep-alive",
+                    "Sec-Fetch-Dest" to "document",
+                    "Sec-Fetch-Mode" to "navigate",
+                    "Sec-Fetch-Site" to "none",
+                    "Upgrade-Insecure-Requests" to "1"
                 )
-            ).text
+            ).document
     
-            val m3uLink = Regex("""(?:file|source):[\s"]*([^"'\s]+)""", RegexOption.IGNORE_CASE)
-                .find(iSource)?.groupValues?.get(1)
+            val iframe = (document.selectFirst(".series-player-container iframe")?.attr("src")
+                ?: document.selectFirst("div#vast_new iframe")?.attr("src"))?.let { fixUrl(it) }
+                ?: throw Exception("Iframe not found")
     
-            val subtitles = Regex("""\"subtitle":\"([^\"]+)""").find(iSource)?.groupValues?.get(1)
-            subtitles?.let {
-                if (it.contains(",")) {
-                    it.split(",").forEach { sub ->
-                        val subLang = sub.substringAfter("[").substringBefore("]")
-                        val subUrl = sub.replace("[$subLang]", "")
+            Log.d("DZP", "Found iframe: $iframe")
     
-                        subtitleCallback(
+            val iframeResponse = app.get(
+                iframe,
+                headers = mapOf(
+                    "User-Agent" to USER_AGENT,
+                    "Accept" to "*/*",
+                    "Accept-Language" to "tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3",
+                    "Connection" to "keep-alive",
+                    "Referer" to data,
+                    "Sec-Fetch-Dest" to "iframe",
+                    "Sec-Fetch-Mode" to "navigate",
+                    "Sec-Fetch-Site" to "cross-site"
+                )
+            )
+    
+            val iSource = iframeResponse.text
+            Log.d("DZP", "iSource length: ${iSource.length}")
+    
+            // M3U8 linki için genişletilmiş regex
+            val m3uLink = (Regex("""["']?file["']?\s*[:=]\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1)
+                ?: Regex("""source:\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1))?.trim()
+    
+            Log.d("DZP", "Found M3U8 link: $m3uLink")
+    
+            if (!m3uLink.isNullOrBlank()) {
+                // Altyazıları işle
+                val subtitles = Regex("""["']?subtitle["']?\s*:\s*["']([^"']+)["']""").find(iSource)?.groupValues?.get(1)
+                subtitles?.let {
+                    if (it.contains(",")) {
+                        it.split(",").forEach { sub ->
+                            val subLang = sub.substringAfter("[").substringBefore("]")
+                            val subUrl = sub.replace("[$subLang]", "").trim()
+                            subtitleCallback.invoke(
+                                SubtitleFile(
+                                    lang = subLang,
+                                    url = fixUrl(subUrl)
+                                )
+                            )
+                        }
+                    } else {
+                        val subLang = it.substringAfter("[").substringBefore("]")
+                        val subUrl = it.replace("[$subLang]", "").trim()
+                        subtitleCallback.invoke(
                             SubtitleFile(
                                 lang = subLang,
                                 url = fixUrl(subUrl)
                             )
                         )
                     }
-                } else {
-                    val subLang = it.substringAfter("[").substringBefore("]")
-                    val subUrl = it.replace("[$subLang]", "")
-    
-                    subtitleCallback(
-                        SubtitleFile(
-                            lang = subLang,
-                            url = fixUrl(subUrl)
-                        )
-                    )
                 }
-            }
     
-            if (!m3uLink.isNullOrBlank() && (m3uLink.contains(".m3u8") || m3uLink.contains("/hls/"))) {
-                val finalUrl = if (!m3uLink.startsWith("http")) {
-                    if (m3uLink.startsWith("//")) "https:$m3uLink"
-                    else "${mainUrl}${if (!m3uLink.startsWith("/")) "/" else ""}$m3uLink"
-                } else m3uLink
-    
+                // M3U8 stream'i ekle
                 callback.invoke(
                     ExtractorLink(
-                        source = this.name,
-                        name = this.name,
-                        url = finalUrl,
+                        source = name,
+                        name = name,
+                        url = m3uLink,
                         referer = iframe,
                         quality = Qualities.Unknown.value,
                         type = ExtractorLinkType.M3U8,
                         headers = mapOf(
-                            "Referer" to iframe,
                             "Origin" to mainUrl,
+                            "Referer" to iframe,
                             "User-Agent" to USER_AGENT
                         )
                     )
                 )
                 return true
             } else {
-                return loadExtractor(iframe, "$mainUrl/", subtitleCallback, callback)
+                Log.d("DZP", "No M3U8 link found, trying extractor")
+                return loadExtractor(iframe, data, subtitleCallback, callback)
             }
+    
         } catch (e: Exception) {
-            Log.e("DZP", "Link extraction failed: ${e.message}")
-            return loadExtractor(cleanData, mainUrl, subtitleCallback, callback)
+            Log.e("DZP", "Error loading links: ${e.message}", e)
+            return false
         }
     }
 }
